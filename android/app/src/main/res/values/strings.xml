@@ -1,10 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">MRSS</string>
-    <string name="tile_label">切换至背屏</string>
-    <string name="tile_screenshot_label">获取背屏截图</string>
-    <string name="tile_record_label">背屏录屏</string>
-    <string name="uninstall_title">😭你真的要卸载MRSS吗？😭\n😭你真的要卸载MRSS吗？😭\n😭你真的要卸载MRSS吗？😭\n</string>
-    <string name="uninstall_content">\n\n\n😭回来吧MRSS😭\n🌟我最骄傲的信仰🌟\n⚡️历历在目背屏场⚡️\n😭眼泪莫名在流淌😭\n💥依稀记得app投背💥\n👍还有给力的装备(作者注:指am force-stop)👍\n⚡️把小米SubScreenCenter都给打退⚡️\n✨通宵熬夜都不累✨\n\n\n</string>
-</resources>
+    <string name="tile_label">Switch to Rear</string>
+    <string name="tile_screenshot_label">Rear Screenshot</string>
+    <string name="tile_record_label">Rear Screen Record</string>
+    <string name="uninstall_title">"😭Do you really want to uninstall MRSS?😭\n😭Do you really want to uninstall MRSS?😭\n😭Do you really want to uninstall MRSS?😭\n"</string>
+    <string name="uninstall_content">"\n\n\n😭Come back MRSS😭\n🌟My proudest faith🌟\n⚡️The rear screen scenes are still vivid in my mind⚡️\n😭Tears are flowing for no reason😭\n💥I vaguely remember casting apps to the back💥\n👍And the powerful gear (Author\'s note: refers to am force-stop)👍\n⚡️Beating even the Xiaomi SubScreenCenter⚡️\n✨Not tired even after staying up all night✨\n\n\n"</string>
 
+    <string name="rear_screen_roaming_service" translatable="false">Rear Screen Roaming Service</string>
+    <string name="charging_animation_service" translatable="false">Charging Animation Service</string>
+    <string name="keep_rear_screen_awake_service" translatable="false">Keep Rear Screen Awake Service</string>
+    <string name="rear_screen_notification_service" translatable="false">Rear Screen Notification Service</string>
+    <string name="rear_screen_record_service" translatable="false">Rear Screen Record Service</string>
+</resources>

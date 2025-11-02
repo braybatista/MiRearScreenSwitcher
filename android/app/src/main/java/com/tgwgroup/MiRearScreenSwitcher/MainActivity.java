@@ -1,3 +1,4 @@
+
 /*
  * Author: AntiOblivionis
  * QQ: 319641317
@@ -29,6 +30,7 @@ import android.os.IBinder;
 import android.util.Log;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import com.tgwgroup.MiRearScreenSwitcher.misc.Constants;
 import io.flutter.embedding.android.FlutterActivity;
 import io.flutter.embedding.engine.FlutterEngine;
 import io.flutter.plugin.common.MethodChannel;
@@ -57,10 +59,8 @@ public class MainActivity extends FlutterActivity {
             .version(1);
     
     // Shizuku监听器（关键！）
-    private final Shizuku.OnBinderReceivedListener binderReceivedListener = 
-        () -> {
-            bindTaskService();
-        };
+    private final Shizuku.OnBinderReceivedListener binderReceivedListener =
+            this::bindTaskService;
     
     private final Shizuku.OnBinderDeadListener binderDeadListener = 
         () -> {
@@ -190,7 +190,7 @@ public class MainActivity extends FlutterActivity {
      */
     private void startNotificationOnRearScreen(String packageName, String title, String text, long when) {
         if (taskService == null) {
-            Log.w(TAG, "TaskService not available for notification");
+            Log.w(TAG, Constants.TASK_SERVICE_NOT_AVAILABLE);
             return;
         }
         
@@ -387,7 +387,7 @@ public class MainActivity extends FlutterActivity {
                                 result.error("ERROR", e.getMessage(), null);
                             }
                         } else {
-                            result.error("ERROR", "TaskService not available", null);
+                            result.error("ERROR", Constants.TASK_SERVICE_NOT_AVAILABLE, null);
                         }
                         break;
                     }
@@ -403,7 +403,7 @@ public class MainActivity extends FlutterActivity {
                                 result.error("ERROR", e.getMessage(), null);
                             }
                         } else {
-                            result.error("ERROR", "TaskService not available", null);
+                            result.error("ERROR", Constants.TASK_SERVICE_NOT_AVAILABLE, null);
                         }
                         break;
                     }
@@ -418,7 +418,7 @@ public class MainActivity extends FlutterActivity {
                                 result.error("ERROR", e.getMessage(), null);
                             }
                         } else {
-                            result.error("ERROR", "TaskService not available", null);
+                            result.error("ERROR", Constants.TASK_SERVICE_NOT_AVAILABLE, null);
                         }
                         break;
                     }
@@ -433,7 +433,7 @@ public class MainActivity extends FlutterActivity {
                             result.success(null);
                         } catch (Exception e) {
                             Log.e(TAG, "Failed to open CoolApk profile", e);
-                            result.error("ERROR", "请先安装酷安应用", null);
+                            result.error("ERROR", Constants.COOLAPK_NOT_INSTALLED, null);
                         }
                         break;
                     }
@@ -448,7 +448,7 @@ public class MainActivity extends FlutterActivity {
                             result.success(null);
                         } catch (Exception e) {
                             Log.e(TAG, "Failed to open CoolApk profile", e);
-                            result.error("ERROR", "请先安装酷安应用", null);
+                            result.error("ERROR", Constants.COOLAPK_NOT_INSTALLED, null);
                         }
                         break;
                     }
@@ -463,7 +463,7 @@ public class MainActivity extends FlutterActivity {
                             result.success(null);
                         } catch (Exception e) {
                             Log.e(TAG, "Failed to open tutorial", e);
-                            result.error("ERROR", "打开失败: " + e.getMessage(), null);
+                            result.error("ERROR", String.format(Constants.FAILED_TO_OPEN_TUTORIAL, e.getMessage()), null);
                         }
                         break;
                     }
@@ -478,7 +478,7 @@ public class MainActivity extends FlutterActivity {
                             result.success(null);
                         } catch (Exception e) {
                             Log.e(TAG, "Failed to open donation page", e);
-                            result.error("ERROR", "打开失败: " + e.getMessage(), null);
+                            result.error("ERROR", String.format(Constants.FAILED_TO_OPEN_DONATION_PAGE, e.getMessage()), null);
                         }
                         break;
                     }
@@ -493,7 +493,7 @@ public class MainActivity extends FlutterActivity {
                             result.success(null);
                         } catch (Exception e) {
                             Log.e(TAG, "Failed to open QQ group page", e);
-                            result.error("ERROR", "打开失败: " + e.getMessage(), null);
+                            result.error("ERROR", String.format(Constants.FAILED_TO_OPEN_QQ_GROUP_PAGE, e.getMessage()), null);
                         }
                         break;
                     }
@@ -524,7 +524,7 @@ public class MainActivity extends FlutterActivity {
                                 result.error("ERROR", e.getMessage(), null);
                             }
                         } else {
-                            result.error("ERROR", "TaskService not available", null);
+                            result.error("ERROR", Constants.TASK_SERVICE_NOT_AVAILABLE, null);
                         }
                         break;
                     }
@@ -539,7 +539,7 @@ public class MainActivity extends FlutterActivity {
                                 result.error("ERROR", e.getMessage(), null);
                             }
                         } else {
-                            result.error("ERROR", "TaskService not available", null);
+                            result.error("ERROR", Constants.TASK_SERVICE_NOT_AVAILABLE, null);
                         }
                         break;
                     }
@@ -579,7 +579,7 @@ public class MainActivity extends FlutterActivity {
                                 result.error("ERROR", e.getMessage(), null);
                             }
                         } else {
-                            result.error("ERROR", "TaskService not available", null);
+                            result.error("ERROR", Constants.TASK_SERVICE_NOT_AVAILABLE, null);
                         }
                         break;
                     }

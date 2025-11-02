@@ -327,7 +327,7 @@ class AppTranslations {
         'rotation_failed': 'Fallo en rotación',
         'rotation_error': 'Error: %s',
 
-        'rear_screen_notifications': '📢 Notificaciones pantalla trasera',
+        'rear_screen_notifications': '📢 Notificaciones Aplicaciones',
         'burnin_warning': 'Advertencia: Puede causar marcas en la pantalla y consumo extra',
         'select_apps': 'Seleccionar apps',
         'set': 'Establecer',
@@ -335,7 +335,7 @@ class AppTranslations {
         'disabled': 'Desactivado',
 
         'proximity_detection': '🤚 Detección de cubierta',
-        'screen_always_on': '🔆 Mantener pantalla trasera encendida',
+        'screen_always_on': '🔆 Mantener pantalla encendida',
         'always_on_no_app': '💡 Mantener encendida sin app',
         'charging_animation': '⚡ Animación de carga',
         'charging_always_on': '💡 Mantener animación',

@@ -1,3 +1,4 @@
+
 package com.tgwgroup.MiRearScreenSwitcher;
 
 import android.app.Notification;
@@ -15,6 +16,7 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.util.Log;
 
+import com.tgwgroup.MiRearScreenSwitcher.misc.ServicesNamesConstants;
 import rikka.shizuku.Shizuku;
 
 /**
@@ -103,10 +105,10 @@ public class AlwaysWakeUpService extends Service {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(
                 channelId,
-                "MRSS内核服务",
+                ServicesNamesConstants.ALWAYS_WAKE_UP_SERVICE_NOTIFICATION_CHANNEL_NAME,
                 NotificationManager.IMPORTANCE_LOW
             );
-            channel.setDescription("MRSS目前正在运行");
+            channel.setDescription(ServicesNamesConstants.ALWAYS_WAKE_UP_SERVICE_NOTIFICATION_CHANNEL_DESCRIPTION);
             channel.setShowBadge(false);
             NotificationManager manager = getSystemService(NotificationManager.class);
             if (manager != null) {
@@ -128,8 +130,8 @@ public class AlwaysWakeUpService extends Service {
         }
         
         Notification notification = builder
-            .setContentTitle("MRSS内核服务")
-            .setContentText("MRSS目前正在运行")
+            .setContentTitle(ServicesNamesConstants.ALWAYS_WAKE_UP_SERVICE_NOTIFICATION_TITLE)
+            .setContentText(ServicesNamesConstants.ALWAYS_WAKE_UP_SERVICE_NOTIFICATION_TEXT)
             .setSmallIcon(R.mipmap.ic_launcher)
             .setContentIntent(pendingIntent)
             .setOngoing(true)
@@ -217,4 +219,3 @@ public class AlwaysWakeUpService extends Service {
         return null;
     }
 }
-

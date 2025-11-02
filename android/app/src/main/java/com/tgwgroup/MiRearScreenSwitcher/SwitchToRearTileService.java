@@ -1,3 +1,4 @@
+
 /*
  * Author: AntiOblivionis
  * QQ: 319641317
@@ -26,6 +27,8 @@ import android.service.quicksettings.Tile;
 import android.service.quicksettings.TileService;
 import android.util.Log;
 import android.widget.Toast;
+import com.tgwgroup.MiRearScreenSwitcher.misc.Constants;
+import com.tgwgroup.MiRearScreenSwitcher.misc.ServicesNamesConstants;
 import rikka.shizuku.Shizuku;
 
 /**
@@ -163,7 +166,7 @@ public class SwitchToRearTileService extends TileService {
     private void switchCurrentAppToRearDisplay() {
         if (taskService == null) {
             Log.w(TAG, "TaskService not available!");
-            showTemporaryFeedback("服务未就绪");
+            showTemporaryFeedback(Constants.SWITCH_TO_REAR_TILE_SERVICE_NOT_READY);
             
             // 尝试重新绑定
             bindTaskService();
@@ -173,7 +176,7 @@ public class SwitchToRearTileService extends TileService {
                 if (taskService != null) {
                     performSwitch();
                 } else {
-                    showTemporaryFeedback("请先打开应用授权");
+                    showTemporaryFeedback(Constants.SWITCH_TO_REAR_TILE_SERVICE_GRANT_PERMISSIONS);
                 }
             }, 1000);
             return;
@@ -187,7 +190,7 @@ public class SwitchToRearTileService extends TileService {
         Tile tile = getQsTile();
         if (tile != null) {
             tile.setState(Tile.STATE_INACTIVE);  // 保持熄灭状态
-            tile.setSubtitle("切换中...");
+            tile.setSubtitle(ServicesNamesConstants.SWITCH_TO_REAR_TILE_SERVICE_TILE_SUBTITLE_SWITCHING);
             // 不显示"已开启"
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
                 tile.setStateDescription("");
@@ -218,10 +221,10 @@ public class SwitchToRearTileService extends TileService {
                         
                         // 延迟显示Toast，确保控制中心已收起
                         new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
-                            Toast.makeText(this, "请先将 " + oldAppName + " 切换回主屏", Toast.LENGTH_LONG).show();
+                            Toast.makeText(this, String.format(Constants.SWITCH_TO_REAR_TILE_SERVICE_SWITCH_BACK_FIRST, oldAppName), Toast.LENGTH_LONG).show();
                         }, 300);
                         
-                        showTemporaryFeedback("✗ 背屏已占用");
+                        showTemporaryFeedback(ServicesNamesConstants.SWITCH_TO_REAR_TILE_SERVICE_TILE_SUBTITLE_REAR_SCREEN_OCCUPIED);
                         return;
                     }
                 } catch (Exception e) {
@@ -291,7 +294,7 @@ public class SwitchToRearTileService extends TileService {
                     
                     // 延迟显示Toast，确保控制中心已收起
                     new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
-                        Toast.makeText(this, appName + " 已投放到背屏", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, String.format(Constants.SWITCH_TO_REAR_TILE_SERVICE_MOVED_TO_REAR_SCREEN, appName), Toast.LENGTH_SHORT).show();
                     }, 300);
                     
                     // 步骤5: 主动点亮背屏 (通过TaskService启动Activity，绕过BAL限制)
@@ -312,7 +315,7 @@ public class SwitchToRearTileService extends TileService {
                         Log.w(TAG, "Failed to launch wakeup activity", e);
                     }
                     
-                    showTemporaryFeedback("✓ 已切换");
+                    showTemporaryFeedback(ServicesNamesConstants.SWITCH_TO_REAR_TILE_SERVICE_TILE_SUBTITLE_SWITCHED);
                 } else {
                     // 先收起控制中心
                     try {
@@ -323,18 +326,18 @@ public class SwitchToRearTileService extends TileService {
                     
                     // 延迟显示Toast
                     new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
-                        Toast.makeText(this, "切换失败", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, Constants.SWITCH_TO_REAR_TILE_SERVICE_FAILED, Toast.LENGTH_SHORT).show();
                     }, 300);
                     
-                    showTemporaryFeedback("✗ 失败");
+                    showTemporaryFeedback(ServicesNamesConstants.SWITCH_TO_REAR_TILE_SERVICE_TILE_SUBTITLE_FAILED);
                 }
             } else {
                 Log.w(TAG, "No foreground app found");
-                showTemporaryFeedback("✗ 未找到应用");
+                showTemporaryFeedback(ServicesNamesConstants.SWITCH_TO_REAR_TILE_SERVICE_TILE_SUBTITLE_APP_NOT_FOUND);
             }
         } catch (Exception e) {
             Log.e(TAG, "Error switching app", e);
-            showTemporaryFeedback("✗ 操作失败");
+            showTemporaryFeedback(ServicesNamesConstants.SWITCH_TO_REAR_TILE_SERVICE_TILE_SUBTITLE_OPERATION_FAILED);
         }
     }
     
@@ -379,4 +382,3 @@ public class SwitchToRearTileService extends TileService {
         return packageName; // 失败时返回包名
     }
 }
-

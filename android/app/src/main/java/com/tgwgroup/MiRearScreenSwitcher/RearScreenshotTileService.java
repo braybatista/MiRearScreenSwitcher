@@ -1,3 +1,4 @@
+
 /*
  * Author: AntiOblivionis
  * QQ: 319641317
@@ -23,6 +24,8 @@ import android.service.quicksettings.Tile;
 import android.service.quicksettings.TileService;
 import android.util.Log;
 import android.widget.Toast;
+import com.tgwgroup.MiRearScreenSwitcher.misc.Constants;
+import com.tgwgroup.MiRearScreenSwitcher.misc.ServicesNamesConstants;
 import rikka.shizuku.Shizuku;
 
 /**
@@ -105,9 +108,9 @@ public class RearScreenshotTileService extends TileService {
                 try {
                     if (taskService == null) {
                         Log.w(TAG, "TaskService not available");
-                        showTemporaryFeedback("✗ 服务未就绪");
+                        showTemporaryFeedback(Constants.REAR_SCREENSHOT_TILE_SERVICE_NOT_READY);
                         new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
-                            Toast.makeText(this, "✗ 服务未就绪", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, Constants.REAR_SCREENSHOT_TILE_SERVICE_NOT_READY, Toast.LENGTH_SHORT).show();
                         });
                         return;
                     }
@@ -115,7 +118,7 @@ public class RearScreenshotTileService extends TileService {
                     boolean success = taskService.takeRearScreenshot();
                     
                     // 无论成功失败都显示成功Toast
-                    showTemporaryFeedback("✓ 已保存");
+                    showTemporaryFeedback(ServicesNamesConstants.REAR_SCREENSHOT_TILE_SERVICE_TILE_SUBTITLE_SAVED);
                     
                     // 先收起控制中心
                     try {
@@ -125,15 +128,15 @@ public class RearScreenshotTileService extends TileService {
                     
                     // 显示Toast提示
                     new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
-                        Toast.makeText(this, "背屏截图已保存", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, Constants.URI_COMMAND_SERVICE_REAR_SCREEN_SCREENSHOT_SAVED, Toast.LENGTH_SHORT).show();
                     });
                     
                 } catch (Exception e) {
                     Log.e(TAG, "Screenshot error", e);
                     // 即使异常也显示成功Toast
-                    showTemporaryFeedback("✓ 已保存");
+                    showTemporaryFeedback(ServicesNamesConstants.REAR_SCREENSHOT_TILE_SERVICE_TILE_SUBTITLE_SAVED);
                     new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
-                        Toast.makeText(this, "背屏截图已保存", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, Constants.URI_COMMAND_SERVICE_REAR_SCREEN_SCREENSHOT_SAVED, Toast.LENGTH_SHORT).show();
                     });
                 }
             }).start();
@@ -187,4 +190,3 @@ public class RearScreenshotTileService extends TileService {
         }
     }
 }
-

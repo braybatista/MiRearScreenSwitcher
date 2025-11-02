@@ -1,3 +1,4 @@
+
 /*
  * Author: AntiOblivionis
  * QQ: 319641317
@@ -28,6 +29,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import android.widget.Toast;
+import com.tgwgroup.MiRearScreenSwitcher.misc.Constants;
 import rikka.shizuku.Shizuku;
 
 /**
@@ -321,15 +323,15 @@ public class UriCommandService extends IntentService {
                     
                     // Toast提示
                     String appName = getAppName(packageName);
-                    showToast(appName + " 已投放到背屏");
+                    showToast(String.format(Constants.URI_COMMAND_SERVICE_MOVED_TO_REAR_SCREEN, appName));
                 } else {
                     Log.e(TAG, "❌ 切换失败");
-                    showToast("切换失败");
+                    showToast(Constants.URI_COMMAND_SERVICE_SWITCH_FAILED);
                 }
             }
         } catch (Exception e) {
             Log.e(TAG, "切换失败", e);
-            showToast("切换失败");
+            showToast(Constants.URI_COMMAND_SERVICE_SWITCH_FAILED);
         }
     }
     
@@ -581,15 +583,15 @@ public class UriCommandService extends IntentService {
                 
                 // Toast提示
                 String appName = getAppName(actualPackage);
-                showToast(appName + " 已投放到背屏");
+                showToast(String.format(Constants.URI_COMMAND_SERVICE_MOVED_TO_REAR_SCREEN, appName));
             } else {
                 Log.e(TAG, "❌ 移动到背屏失败");
-                showToast("切换失败");
+                showToast(Constants.URI_COMMAND_SERVICE_SWITCH_FAILED);
             }
             
         } catch (Exception e) {
             Log.e(TAG, "切换指定应用失败", e);
-            showToast("切换失败: " + e.getMessage());
+            showToast(String.format(Constants.URI_COMMAND_SERVICE_SWITCH_FAILED_WITH_REASON, e.getMessage()));
         }
     }
     
@@ -655,14 +657,14 @@ public class UriCommandService extends IntentService {
                     }
                     
                     // Toast提示
-                    showToast(appName + " 已返回主屏");
+                    showToast(String.format(Constants.URI_COMMAND_SERVICE_RETURNED_TO_MAIN_SCREEN, appName));
                 } else {
                     Log.w(TAG, "⚠ 任务不在背屏");
-                    showToast("应用不在背屏");
+                    showToast(Constants.URI_COMMAND_SERVICE_APP_NOT_ON_REAR_SCREEN);
                 }
             } else {
                 Log.w(TAG, "⚠ 未找到要拉回的任务");
-                showToast("未找到要拉回的应用");
+                showToast(Constants.URI_COMMAND_SERVICE_APP_TO_RETURN_NOT_FOUND);
             }
         } catch (Exception e) {
             Log.e(TAG, "拉回命令失败", e);
@@ -678,11 +680,11 @@ public class UriCommandService extends IntentService {
             
             // 无论成功失败都显示成功Toast
             Log.d(TAG, "✅ 截图命令已执行");
-            showToast("背屏截图已保存");
+            showToast(Constants.URI_COMMAND_SERVICE_REAR_SCREEN_SCREENSHOT_SAVED);
         } catch (Exception e) {
             Log.e(TAG, "截图命令失败", e);
             // 即使异常也显示成功Toast
-            showToast("背屏截图已保存");
+            showToast(Constants.URI_COMMAND_SERVICE_REAR_SCREEN_SCREENSHOT_SAVED);
         }
     }
     
@@ -790,5 +792,3 @@ public class UriCommandService extends IntentService {
         }
     }
 }
-
- 

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tile_label">Cambiar a Trasera</string>
+    <string name="tile_screenshot_label">Captura Trasera</string>
+    <string name="tile_record_label">Grabar Pantalla Trasera</string>
+    <string name="uninstall_title">"😭¿De verdad quieres desinstalar MRSS?😭\n😭¿De verdad quieres desinstalar MRSS?😭\n😭¿De verdad quieres desinstalar MRSS?😭\n"</string>
+    <string name="uninstall_content">"\n\n\n😭Vuelve MRSS😭\n🌟Mi fe más orgullosa🌟\n⚡️Las escenas de la pantalla trasera siguen vivas en mi mente⚡️\n😭Las lágrimas fluyen sin razón😭\n💥Recuerdo vagamente proyectar aplicaciones en la parte de atrás💥\n👍Y el equipo poderoso (Nota del autor: se refiere a am force-stop)👍\n⚡️Venciendo incluso al Xiaomi SubScreenCenter⚡️\n✨Sin cansancio incluso después de toda la noche✨\n\n\n"</string>
+</resources>

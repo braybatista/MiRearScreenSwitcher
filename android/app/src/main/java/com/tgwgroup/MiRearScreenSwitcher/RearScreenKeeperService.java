@@ -1,3 +1,4 @@
+
 /*
  * Author: AntiOblivionis
  * QQ: 319641317
@@ -40,6 +41,8 @@ import android.os.RemoteException;
 import android.util.Log;
 import android.widget.Toast;
 import androidx.core.app.NotificationCompat;
+import com.tgwgroup.MiRearScreenSwitcher.misc.Constants;
+import com.tgwgroup.MiRearScreenSwitcher.misc.ServicesNamesConstants;
 import rikka.shizuku.Shizuku;
 
 /**
@@ -153,7 +156,7 @@ public class RearScreenKeeperService extends Service implements SensorEventListe
                     
                     // 延迟显示Toast提示
                     new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
-                        Toast.makeText(this, appName + " 已返回主屏", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, String.format(Constants.REAR_SCREEN_KEEPER_SERVICE_RETURNED_TO_MAIN_SCREEN, appName), Toast.LENGTH_SHORT).show();
                     }, 100);
                     
                     // 停止服务
@@ -551,7 +554,7 @@ public class RearScreenKeeperService extends Service implements SensorEventListe
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(
                 CHANNEL_ID,
-                "MRSS内核服务",
+                ServicesNamesConstants.REAR_SCREEN_KEEPER_SERVICE_NOTIFICATION_CHANNEL_NAME,
                 NotificationManager.IMPORTANCE_LOW  // 低重要性，减少干扰
             );
             channel.setDescription("com.xiaomi.subscreencenter.SubScreenLauncher真是高高在上呢");
@@ -590,7 +593,7 @@ public class RearScreenKeeperService extends Service implements SensorEventListe
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(
                 CHANNEL_ID,
-                "MRSS内核服务",
+                ServicesNamesConstants.REAR_SCREEN_KEEPER_SERVICE_NOTIFICATION_CHANNEL_NAME,
                 NotificationManager.IMPORTANCE_LOW
             );
             channel.setDescription("com.xiaomi.subscreencenter.SubScreenLauncher真是高高在上呢");
@@ -601,8 +604,8 @@ public class RearScreenKeeperService extends Service implements SensorEventListe
         }
         
         return new NotificationCompat.Builder(context, CHANNEL_ID)
-            .setContentTitle("MRSS内核服务")
-            .setContentText("MRSS目前正在运行")
+            .setContentTitle(ServicesNamesConstants.REAR_SCREEN_KEEPER_SERVICE_NOTIFICATION_CHANNEL_NAME)
+            .setContentText(ServicesNamesConstants.REAR_SCREEN_KEEPER_SERVICE_NOTIFICATION_CONTENT_TEXT)
             .setSmallIcon(R.mipmap.ic_launcher)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setOngoing(true)
@@ -616,7 +619,7 @@ public class RearScreenKeeperService extends Service implements SensorEventListe
      */
     private Notification buildNotification() {
         // 获取应用名称
-        String appName = "应用";
+        String appName = ServicesNamesConstants.REAR_SCREEN_KEEPER_SERVICE_NOTIFICATION_APPLICATION;
         
         if (monitoredTaskInfo != null && monitoredTaskInfo.contains(":")) {
             String packageName = monitoredTaskInfo.split(":")[0];
@@ -634,8 +637,8 @@ public class RearScreenKeeperService extends Service implements SensorEventListe
         );
         
         return new NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle(appName + " 正在背屏运行")
-            .setContentText("点击将 " + appName + " 切换回主屏")
+            .setContentTitle(String.format(ServicesNamesConstants.REAR_SCREEN_KEEPER_SERVICE_NOTIFICATION_TITLE, appName))
+            .setContentText(String.format(ServicesNamesConstants.REAR_SCREEN_KEEPER_SERVICE_NOTIFICATION_TEXT, appName))
             .setSmallIcon(R.mipmap.ic_launcher)
             .setContentIntent(pendingIntent)
             .setPriority(NotificationCompat.PRIORITY_LOW)  // 低优先级
@@ -854,7 +857,7 @@ public class RearScreenKeeperService extends Service implements SensorEventListe
                     if (success) {
                         // 延迟显示Toast
                         new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
-                            Toast.makeText(RearScreenKeeperService.this, appName + " 已返回主屏", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(RearScreenKeeperService.this, String.format(Constants.REAR_SCREEN_KEEPER_SERVICE_RETURNED_TO_MAIN_SCREEN, appName), Toast.LENGTH_SHORT).show();
                         }, 100);
                     } else {
                         Log.w(TAG, "⚠ Failed to return task (may already be on main display)");
@@ -877,4 +880,3 @@ public class RearScreenKeeperService extends Service implements SensorEventListe
         }
     }
 }
-

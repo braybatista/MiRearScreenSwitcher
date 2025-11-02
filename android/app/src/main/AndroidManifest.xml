@@ -1,3 +1,4 @@
+
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
     <!-- Shizuku权限（关键！） -->
@@ -20,7 +21,7 @@
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"/>
     
     <application
-        android:label="MRSS"
+        android:label="@string/app_name"
         android:name=".MyApplication"
         android:icon="@mipmap/ic_launcher">
         <!-- 🔑 关键：背屏准入证！已验证有效！ -->
@@ -99,7 +100,7 @@
             android:foregroundServiceType="specialUse">
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="背屏漫游服务"/>
+                android:value="@string/rear_screen_roaming_service"/>
         </service>
         
         <!-- V2.3: 充电动画服务 -->
@@ -110,7 +111,7 @@
             android:foregroundServiceType="specialUse">
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="充电动画服务"/>
+                android:value="@string/charging_animation_service"/>
         </service>
         
         <!-- V3.5: 未投放应用时常亮服务 -->
@@ -121,7 +122,7 @@
             android:foregroundServiceType="specialUse">
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="持续唤醒背屏服务"/>
+                android:value="@string/keep_rear_screen_awake_service"/>
         </service>
         
         <!-- V2.4: 通知监听服务 -->
@@ -136,7 +137,7 @@
             </intent-filter>
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="背屏通知服务"/>
+                android:value="@string/rear_screen_notification_service"/>
         </service>
         
         <!-- V2.6: URI命令处理服务（后台执行） -->
@@ -153,7 +154,7 @@
             android:foregroundServiceType="specialUse">
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="背屏录屏服务"/>
+                android:value="@string/rear_screen_record_service"/>
         </service>
 
         
