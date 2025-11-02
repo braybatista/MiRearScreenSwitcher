@@ -22,6 +22,10 @@ import 'dart:typed_data';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'localization/app_translations.dart';
 import 'localization/localized_text.dart';
+// App color palette and helpers
+import 'theme/colors.dart';
+
+bool isDarkMode = false;
 
 void main() async {
   // Initialize Flutter bindings
@@ -88,13 +92,15 @@ class _DisplaySwitcherAppState extends State<DisplaySwitcherApp> {
 
   @override
   Widget build(BuildContext context) {
-    print("[BABZ] [_DisplaySwitcherAppState][build] context: " + context.toString());
+    isDarkMode = isSystemDarkMode(context);
     print("[BABZ] [_DisplaySwitcherAppState][build] _currentLanguage: " + _currentLanguage);
+    print("[BABZ] [_DisplaySwitcherAppState][build] isSystemDarkMode: " + isDarkMode.toString());
+    print("[BABZ] [_DisplaySwitcherAppState][build] isSystemDarkMode: " + (isDarkMode ? "kGray900" : "kCoral"));
     return MaterialApp(
       title: 'MRSS',
       navigatorKey: navigatorKey,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFFF9D88)),
+        colorScheme: ColorScheme.fromSeed(seedColor: (isDarkMode ? kGray900 : kCoral)),
         useMaterial3: true,
       ),
       home: HomePage(languageCode: _currentLanguage),
@@ -714,7 +720,7 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: kTransparent,
         foregroundColor: Colors.white,
         elevation: 0,
         scrolledUnderElevation: 0,
@@ -732,17 +738,8 @@ class _HomePageState extends State<HomePage> {
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFFFF9D88),  // 珊瑚橙
-              Color(0xFFFFB5C5),  // 粉红
-              Color(0xFFE0B5DC),  // 紫色
-              Color(0xFFA8C5E5),  // 蓝色
-            ],
-          ),
+        decoration: BoxDecoration(
+          gradient: kMainGradient,
         ),
         child: SafeArea(
           child: SingleChildScrollView(
@@ -755,7 +752,7 @@ class _HomePageState extends State<HomePage> {
                 CustomPaint(
                   painter: _SquircleBorderPainter(
                     radius: _SquircleRadii.large,
-                    color: Colors.white.withOpacity(0.5),
+                    color: kWhite50,
                     strokeWidth: 1.5,
                   ),
                   child: ClipPath(
@@ -764,7 +761,7 @@ class _HomePageState extends State<HomePage> {
                 filter: ImageFilter.blur(sigmaX: 0, sigmaY: 0),
                 child: Container(
                   decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.25),
+                          color: kWhite25,
                         ),
                         padding: const EdgeInsets.all(16),
                   child: Column(
@@ -815,7 +812,7 @@ class _HomePageState extends State<HomePage> {
                     CustomPaint(
                       painter: _SquircleBorderPainter(
                         radius: _SquircleRadii.large,
-                        color: Colors.white.withOpacity(0.5),
+                        color: kWhite50,
                         strokeWidth: 1.5,
                       ),
                       child: ClipPath(
@@ -824,7 +821,7 @@ class _HomePageState extends State<HomePage> {
                           filter: ImageFilter.blur(sigmaX: 0, sigmaY: 0),
                       child: Container(
                         decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.25),
+                          color: kWhite25,
                         ),
                         padding: const EdgeInsets.all(20),
                         child: Column(
@@ -894,18 +891,9 @@ class _HomePageState extends State<HomePage> {
                                 ClipPath(
                                   clipper: _SquircleClipper(cornerRadius: _SquircleRadii.small),
                                   child: Container(
-                                    decoration: const BoxDecoration(
-                                      gradient: LinearGradient(
-                                        begin: Alignment.topLeft,
-                                        end: Alignment.bottomRight,
-                                        colors: [
-                                          Color(0xFFFF9D88),  // 珊瑚橙
-                                          Color(0xFFFFB5C5),  // 粉红
-                                          Color(0xFFE0B5DC),  // 紫色
-                                          Color(0xFFA8C5E5),  // 蓝色
-                                        ],
+                                      decoration: BoxDecoration(
+                                        gradient: kMainGradient,
                                       ),
-                                    ),
                                     child: ElevatedButton(
                                   onPressed: (_isLoading || _dpiLoading) ? null : () {
                                     final dpi = int.tryParse(_dpiController.text);
@@ -918,9 +906,9 @@ class _HomePageState extends State<HomePage> {
                                     }
                                   },
                                   style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.transparent,
+                                        backgroundColor: kTransparent,
                                     foregroundColor: Colors.white,
-                                        shadowColor: Colors.transparent,
+                                        shadowColor: kTransparent,
                                     padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                                         shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(_SquircleRadii.small),
@@ -944,7 +932,7 @@ class _HomePageState extends State<HomePage> {
                                 child: ClipPath(
                                   clipper: _SquircleClipper(cornerRadius: _SquircleRadii.small),
                                   child: Material(
-                                    color: Colors.transparent,
+                                  color: kTransparent,
                                     child: InkWell(
                                       onTap: (_isLoading || _dpiLoading) ? null : _resetRearDpi,
                                         child: Padding(
@@ -1006,7 +994,7 @@ class _HomePageState extends State<HomePage> {
                     CustomPaint(
                       painter: _SquircleBorderPainter(
                         radius: _SquircleRadii.large,
-                        color: Colors.white.withOpacity(0.5),
+                        color: kWhite50,
                         strokeWidth: 1.5,
                       ),
                       child: ClipPath(
@@ -1016,7 +1004,7 @@ class _HomePageState extends State<HomePage> {
                           child: Container(
                             padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.25),
+                              color: kWhite25,
                             ),
                             child: Row(
                           children: [
@@ -1044,7 +1032,7 @@ class _HomePageState extends State<HomePage> {
                 CustomPaint(
                   painter: _SquircleBorderPainter(
                     radius: _SquircleRadii.large,
-                    color: Colors.white.withOpacity(0.5),
+                    color: kWhite50,
                     strokeWidth: 1.5,
                   ),
                   child: ClipPath(
@@ -1054,7 +1042,7 @@ class _HomePageState extends State<HomePage> {
                       child: Container(
                         padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.25),
+                          color: kWhite25,
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1134,7 +1122,7 @@ class _HomePageState extends State<HomePage> {
                       child: Container(
                         padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.25),
+                          color: kWhite25,
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1280,8 +1268,8 @@ class _HomePageState extends State<HomePage> {
                               }
                             }
                           },
-                          splashColor: Colors.white.withOpacity(0.3),
-                          highlightColor: Colors.white.withOpacity(0.2),
+                          splashColor: kWhite30,
+                          highlightColor: kWhite20,
                           child: Container(
                             decoration: BoxDecoration(
                               color: Colors.white.withOpacity(0.25),
@@ -1347,8 +1335,8 @@ class _HomePageState extends State<HomePage> {
                               }
                             }
                           },
-                          splashColor: Colors.white.withOpacity(0.3),
-                          highlightColor: Colors.white.withOpacity(0.2),
+                          splashColor: kWhite30,
+                          highlightColor: kWhite20,
                           child: Container(
                             decoration: BoxDecoration(
                               color: Colors.white.withOpacity(0.25),
@@ -1488,7 +1476,7 @@ class _HomePageState extends State<HomePage> {
                           child: BackdropFilter(
                             filter: ImageFilter.blur(sigmaX: 0, sigmaY: 0),
                             child: Material(
-                              color: Colors.transparent,
+                              color: kTransparent,
                               child: InkWell(
                                 onTap: () async {
                                   // 打开打赏页面
@@ -1552,7 +1540,7 @@ class _HomePageState extends State<HomePage> {
                           child: BackdropFilter(
                             filter: ImageFilter.blur(sigmaX: 0, sigmaY: 0),
                             child: Material(
-                              color: Colors.transparent,
+                              color: kTransparent,
                               child: InkWell(
                                 onTap: () async {
                                   // 打开交流群页面
@@ -1624,20 +1612,11 @@ class _HomePageState extends State<HomePage> {
          clipper: _SquircleClipper(cornerRadius: _SquircleRadii.small),
         child: Container(
           decoration: BoxDecoration(
-            gradient: isSelected ? const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Color(0xFFFF9D88),  // 珊瑚橙
-                Color(0xFFFFB5C5),  // 粉红
-                Color(0xFFE0B5DC),  // 紫色
-                Color(0xFFA8C5E5),  // 蓝色
-              ],
-            ) : null,
-            color: isSelected ? null : Colors.white70,
+            gradient: isSelected ? kMainGradient : null,
+            color: isSelected ? null : kWhite70,
           ),
           child: Material(
-            color: Colors.transparent,
+            color: kTransparent,
             child: InkWell(
               onTap: (_isLoading || _dpiLoading) ? null : () => _setRotation(rotation),
               child: Center(
@@ -1769,17 +1748,8 @@ class _GradientToggleState extends State<_GradientToggle> {
                   curve: Curves.easeOut,
                   opacity: widget.value ? 1.0 : 0.0,
                   child: Container(
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          Color(0xFFFF9D88),
-                          Color(0xFFFFB5C5),
-                          Color(0xFFE0B5DC),
-                          Color(0xFFA8C5E5),
-                        ],
-                      ),
+                    decoration: BoxDecoration(
+                      gradient: kMainGradient,
                     ),
                   ),
                 ),
@@ -1842,8 +1812,8 @@ class _AppListItem extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onToggle,
-        splashColor: const Color(0x20FFB5C5), // 浅浅的粉红色（四色渐变中间色）
-        highlightColor: const Color(0x10E0B5DC), // 浅浅的紫色高光
+        splashColor: colorFromHex('#20FFB5C5'), // 浅浅的粉红色（四色渐变中间色）
+        highlightColor: colorFromHex('#10E0B5DC'), // 浅浅的紫色高光
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           child: Row(
@@ -1877,7 +1847,7 @@ class _AppListItem extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       packageName,
-                      style: const TextStyle(fontSize: 11, color: Colors.white70),
+                      style: TextStyle(fontSize: 11, color: kWhite), //kWhite70
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -1935,17 +1905,8 @@ class _GradientCheckboxState extends State<_GradientCheckbox> {
                   duration: const Duration(milliseconds: 200),
                   opacity: widget.value ? 1.0 : 0.0,
                   child: Container(
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          Color(0xFFFF9D88),
-                          Color(0xFFFFB5C5),
-                          Color(0xFFE0B5DC),
-                          Color(0xFFA8C5E5),
-                        ],
-                      ),
+                    decoration: BoxDecoration(
+                      gradient: kMainGradient,
                     ),
                   ),
                 ),
@@ -2576,17 +2537,8 @@ class _AppSelectionPageState extends State<AppSelectionPage> {
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFFFF9D88),  // 珊瑚橙
-              Color(0xFFFFB5C5),  // 粉红
-              Color(0xFFE0B5DC),  // 紫色
-              Color(0xFFA8C5E5),  // 蓝色
-            ],
-          ),
+        decoration: BoxDecoration(
+          gradient: kMainGradient,
         ),
         child: SafeArea(
           child: _isLoading
@@ -2643,20 +2595,11 @@ class _AppSelectionPageState extends State<AppSelectionPage> {
                                       ClipPath(
                                          clipper: _SquircleClipper(cornerRadius: _SquircleRadii.small),
                                         child: Container(
-                                          decoration: const BoxDecoration(
-                                            gradient: LinearGradient(
-                                              begin: Alignment.topLeft,
-                                              end: Alignment.bottomRight,
-                                              colors: [
-                                                Color(0xFFFF9D88),
-                                                Color(0xFFFFB5C5),
-                                                Color(0xFFE0B5DC),
-                                                Color(0xFFA8C5E5),
-                                              ],
-                                            ),
+                                          decoration: BoxDecoration(
+                                            gradient: kMainGradient,
                                           ),
                                           child: Material(
-                                            color: Colors.transparent,
+                                            color: kTransparent,
                                             child: InkWell(
                                               onTap: _selectAllVisible,
                                               child: Padding(
@@ -2671,17 +2614,8 @@ class _AppSelectionPageState extends State<AppSelectionPage> {
                                       ClipPath(
                                          clipper: _SquircleClipper(cornerRadius: _SquircleRadii.small),
                                         child: Container(
-                                          decoration: const BoxDecoration(
-                                            gradient: LinearGradient(
-                                              begin: Alignment.topLeft,
-                                              end: Alignment.bottomRight,
-                                              colors: [
-                                                Color(0xFFFF9D88),
-                                                Color(0xFFFFB5C5),
-                                                Color(0xFFE0B5DC),
-                                                Color(0xFFA8C5E5),
-                                              ],
-                                            ),
+                                          decoration: BoxDecoration(
+                                            gradient: kMainGradient,
                                           ),
                                           child: Material(
                                             color: Colors.transparent,
@@ -2898,17 +2832,8 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFFFF9D88),
-              Color(0xFFFFB5C5),
-              Color(0xFFE0B5DC),
-              Color(0xFFA8C5E5),
-            ],
-          ),
+        decoration: BoxDecoration(
+          gradient: kMainGradient,
         ),
         child: SafeArea(
           child: ListView(
@@ -3150,17 +3075,8 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                               ClipPath(
                                 clipper: _SquircleClipper(cornerRadius: _SquircleRadii.small),
                                 child: Container(
-                                  decoration: const BoxDecoration(
-                                    gradient: LinearGradient(
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                      colors: [
-                                        Color(0xFFFF9D88),
-                                        Color(0xFFFFB5C5),
-                                        Color(0xFFE0B5DC),
-                                        Color(0xFFA8C5E5),
-                                      ],
-                                    ),
+                                  decoration: BoxDecoration(
+                                    gradient: kMainGradient,
                                   ),
                                   child: ElevatedButton(
                                     onPressed: () {
