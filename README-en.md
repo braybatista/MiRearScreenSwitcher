@@ -17,7 +17,7 @@ This change aims to protect the project's core innovations while maintaining the
 
 ---
 
-## ✨ Features (V3.1.1)
+## ✨ Features (V3.1.2)
 
 - 🎯 **Quick Switching**: Switch applications to the back screen with one click via the quick switch in the control center.
 - 📸 **Back Screen Screenshot**: Capture the back screen with one click and save it to your photo album (automatically collapses the control center, keycode wake-up)
@@ -227,6 +227,10 @@ The generated APK is located at: `build/app/outputs/flutter-apk/app-arm64-v8a-re
    - ✅ **Beautiful UI**: Four-color gradient + super elliptical rounded corner design
    - ✅ **Code Optimization**: Removed unused code and fixed garbled character issues
 
+### V3.1.2 New Features
+   - ✅ **Optimized Application Selection**: Selected applications are automatically displayed at the top of the list for easier management.
+   - ✅ **Optimized Kill Logic**: The launcher kill strategy has been optimized to kill only once before the animation starts, avoiding frequent operations.
+
 ### V3.1.1 New Features
    - ✅ **Service Keep-Alive Optimization**: Added foreground service keep-alive to ChargingService to prevent it from being killed by the system
    - ✅ **Unified Notification Management:** All services use a unified kernel service notification, avoiding the accumulation of multiple notifications.
@@ -252,6 +256,12 @@ The generated APK is located at: `build/app/outputs/flutter-apk/app-arm64-v8a-re
 ---
 
 ## 📝 Changelog
+
+### V3.1.2 (2025)
+
+#### Feature Optimization
+   - In the application selection list, selected applications are automatically displayed at the top, while unselected applications are displayed at the bottom.
+   - Optimized the launcher kill logic for charging and notification animations, now only killing the launcher once before the animation starts.
 
 ### V3.1.1 (2025)
 
