@@ -22,7 +22,6 @@ import 'dart:typed_data';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'localization/app_translations.dart';
 import 'localization/localized_text.dart';
-// App color palette and helpers
 import 'theme/colors.dart';
 
 bool isDarkMode = false;
@@ -223,8 +222,8 @@ class _HomePageState extends State<HomePage> {
   }
   
   Future<void> _requestNotificationPermission() async {
-  // Android 13+ 需要请求通知权限
-  // Android 13+ requires notification permission
+    // Android 13+ 需要请求通知权限
+    // Android 13+ requires notification permission
     try {
       await platform.invokeMethod('requestNotificationPermission');
       print(LocalizedText.get('notification_permission_requested'));
@@ -415,8 +414,6 @@ class _HomePageState extends State<HomePage> {
     }
   }
   
-  
-  
   // V2.1: 重启应用
   Future<void> _restartApp() async {
     if (_isLoading) return;
@@ -489,7 +486,6 @@ class _HomePageState extends State<HomePage> {
     }
   }
   
-  
   // V2.4: 检查通知监听权限
   Future<void> _checkNotificationPermission() async {
     try {
@@ -548,7 +544,6 @@ class _HomePageState extends State<HomePage> {
     }
   }
   
-  
   // V2.4: 打开应用选择页面
   Future<void> _openAppSelectionPage() async {
     await Navigator.push(
@@ -556,7 +551,15 @@ class _HomePageState extends State<HomePage> {
       MaterialPageRoute(builder: (context) => const AppSelectionPage()),
     );
   }
-  
+
+  // V2.5: test notification to rear screen
+  Future<void> _openAppTestNotification() async {
+    try {
+      await platform.invokeMethod('generateTestNotification');
+    } catch (e) {
+      print('[BABZ] [_HomePageState] [_openAppTestNotification] Error al enviar notificación: $e');
+    }
+  }
   
   // V2.2: 切换接近传感器开关
   Future<void> _toggleProximitySensor(bool enabled) async {
@@ -609,7 +612,7 @@ class _HomePageState extends State<HomePage> {
     try {
       await platform.invokeMethod('toggleChargingService', {'enabled': true});
     } catch (e) {
-  print(LocalizedText.get('start_charging_service_failed', [e.toString()]));
+      print(LocalizedText.get('start_charging_service_failed', [e.toString()]));
     }
   }
   
@@ -748,7 +751,7 @@ class _HomePageState extends State<HomePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-            // 整合后的状态和权限卡片（毛玻璃效果）
+                // 整合后的状态和权限卡片（毛玻璃效果）
                 CustomPaint(
                   painter: _SquircleBorderPainter(
                     radius: _SquircleRadii.large,
@@ -757,56 +760,54 @@ class _HomePageState extends State<HomePage> {
                   ),
                   child: ClipPath(
                     clipper: _SquircleClipper(cornerRadius: _SquircleRadii.large),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 0, sigmaY: 0),
-                child: Container(
-                  decoration: BoxDecoration(
-                          color: kWhite25,
-                        ),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 0, sigmaY: 0),
+                      child: Container(
+                        decoration: BoxDecoration(color: kWhite25),
                         padding: const EdgeInsets.all(16),
-                  child: Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                                _shizukuRunning ? Icons.check_circle : (_hasError ? Icons.error_outline : Icons.warning_rounded),
-                                size: 28,
-                                color: _shizukuRunning ? Colors.green : (_hasError ? Colors.red : Colors.orange),
-                              ),
-                              const SizedBox(width: 10),
-                      Text(
-                                _shizukuRunning ? LocalizedText.get('shizuku_running') : _statusMessage,
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  _shizukuRunning ? Icons.check_circle : (_hasError ? Icons.error_outline : Icons.warning_rounded),
+                                  size: 28,
+                                  color: _shizukuRunning ? Colors.green : (_hasError ? Colors.red : Colors.orange),
+                                ),
+                                const SizedBox(width: 10),
+                                Text(
+                                  _shizukuRunning ? LocalizedText.get('shizuku_running') : _statusMessage,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.black87,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            if (_hasError && _errorDetail.isNotEmpty) ...[
+                              const SizedBox(height: 8),
+                              Text(
+                                _errorDetail,
                                 style: const TextStyle(
-                                  fontSize: 16,
-                          color: Colors.black87,
-                                  fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                            ],
-                          ),
-                          if (_hasError && _errorDetail.isNotEmpty) ...[
-                            const SizedBox(height: 8),
-                      Text(
-                              _errorDetail,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: Colors.black54,
-                                height: 1.3,
+                                  fontSize: 12,
+                                  color: Colors.black54,
+                                  height: 1.3,
+                                ),
+                                textAlign: TextAlign.center,
                               ),
-                        textAlign: TextAlign.center,
+                            ],
+                          ],
                         ),
-                      ],
-                    ],
                       ),
+                    ),
                   ),
                 ),
-              ),
-            ),
                   
                 SizedBox(height: 20),
                   
-                  // V15: 背屏DPI调整卡片
+                // V15: 背屏DPI调整卡片
                 Stack(
                   children: [
                     CustomPaint(
@@ -817,174 +818,173 @@ class _HomePageState extends State<HomePage> {
                       ),
                       child: ClipPath(
                         clipper: _SquircleClipper(cornerRadius: _SquircleRadii.large),
-                    child: BackdropFilter(
+                        child: BackdropFilter(
                           filter: ImageFilter.blur(sigmaX: 0, sigmaY: 0),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: kWhite25,
-                        ),
-                        padding: const EdgeInsets.all(20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Text(
-                                  LocalizedText.get('dpi_setting'),
-                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    color: Colors.black87,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                if (_dpiLoading) ...[
-                                  const SizedBox(width: 12),
-                                  const SizedBox(
-                                    width: 16,
-                                    height: 16,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.black54),
-                                    ),
-                                  ),
-                                ],
-                              ],
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: kWhite25,
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              _dpiLoading ? LocalizedText.get('dpi_loading') : (LocalizedText.get('current_dpi', [_currentRearDpi]) + '  ' + LocalizedText.get('dpi_recommended')),
-                              style: const TextStyle(
-                                color: Colors.black54,
-                                fontSize: 14,
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            Row(
+                            padding: const EdgeInsets.all(20),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Expanded(
-                                  child: TextField(
-                                    controller: _dpiController,
-                                    focusNode: _dpiFocusNode,
-                                    enabled: !_dpiLoading && !_isLoading,
-                                    keyboardType: TextInputType.number,
-                                    style: TextStyle(color: Colors.black87),
-                                    decoration: InputDecoration(
-                                      labelText: LocalizedText.get('new_dpi'),
-                                      labelStyle: TextStyle(color: Colors.black54),
-                                      hintText: LocalizedText.get('enter_dpi'),
-                                      hintStyle: TextStyle(color: Colors.black38),
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.all(Radius.circular(_SquircleRadii.small)),
-                                        borderSide: BorderSide(color: Colors.black26),
-                                      ),
-                                      enabledBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.all(Radius.circular(_SquircleRadii.small)),
-                                        borderSide: BorderSide(color: Colors.black26),
-                                      ),
-                                      focusedBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.all(Radius.circular(_SquircleRadii.small)),
-                                        borderSide: BorderSide(color: Colors.black54, width: 2),
+                                Row(
+                                  children: [
+                                    Text(
+                                      LocalizedText.get('dpi_setting'),
+                                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                        color: Colors.black87,
+                                        fontWeight: FontWeight.bold,
                                       ),
                                     ),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                ClipPath(
-                                  clipper: _SquircleClipper(cornerRadius: _SquircleRadii.small),
-                                  child: Container(
-                                      decoration: BoxDecoration(
-                                        gradient: kMainGradient,
-                                      ),
-                                    child: ElevatedButton(
-                                  onPressed: (_isLoading || _dpiLoading) ? null : () {
-                                    final dpi = int.tryParse(_dpiController.text);
-                                    if (dpi != null && dpi > 0) {
-                                      _setRearDpi(dpi);
-                                    } else {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text(LocalizedText.get('invalid_dpi_value'))),
-                                      );
-                                    }
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                        backgroundColor: kTransparent,
-                                    foregroundColor: Colors.white,
-                                        shadowColor: kTransparent,
-                                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(_SquircleRadii.small),
+                                    if (_dpiLoading) ...[
+                                      const SizedBox(width: 12),
+                                      const SizedBox(
+                                        width: 16,
+                                        height: 16,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor: AlwaysStoppedAnimation<Color>(Colors.black54),
                                         ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  _dpiLoading ? LocalizedText.get('dpi_loading') : (LocalizedText.get('current_dpi', [_currentRearDpi]) + '  ' + LocalizedText.get('dpi_recommended')),
+                                  style: const TextStyle(
+                                    color: Colors.black54,
+                                    fontSize: 14,
                                   ),
-                                  child: Text(LocalizedText.get('set_button')),
+                                ),
+                                const SizedBox(height: 16),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: TextField(
+                                        controller: _dpiController,
+                                        focusNode: _dpiFocusNode,
+                                        enabled: !_dpiLoading && !_isLoading,
+                                        keyboardType: TextInputType.number,
+                                        style: TextStyle(color: Colors.black87),
+                                        decoration: InputDecoration(
+                                          labelText: LocalizedText.get('new_dpi'),
+                                          labelStyle: TextStyle(color: Colors.black54),
+                                          hintText: LocalizedText.get('enter_dpi'),
+                                          hintStyle: TextStyle(color: Colors.black38),
+                                          border: OutlineInputBorder(
+                                            borderRadius: BorderRadius.all(Radius.circular(_SquircleRadii.small)),
+                                            borderSide: BorderSide(color: Colors.black26),
+                                          ),
+                                          enabledBorder: OutlineInputBorder(
+                                            borderRadius: BorderRadius.all(Radius.circular(_SquircleRadii.small)),
+                                            borderSide: BorderSide(color: Colors.black26),
+                                          ),
+                                          focusedBorder: OutlineInputBorder(
+                                            borderRadius: BorderRadius.all(Radius.circular(_SquircleRadii.small)),
+                                            borderSide: BorderSide(color: Colors.black54, width: 2),
+                                          ),
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            SizedBox(
-                              width: double.infinity,
-                              child: CustomPaint(
-                                painter: _SquircleBorderPainter(
-                                  radius: _SquircleRadii.small,
-                                  color: Colors.black26,
-                                  strokeWidth: 1,
-                                ),
-                                child: ClipPath(
-                                  clipper: _SquircleClipper(cornerRadius: _SquircleRadii.small),
-                                  child: Material(
-                                  color: kTransparent,
-                                    child: InkWell(
-                                      onTap: (_isLoading || _dpiLoading) ? null : _resetRearDpi,
-                                        child: Padding(
-                                        padding: EdgeInsets.symmetric(vertical: 12),
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            Icon(Icons.restore, color: Colors.black87, size: 20),
-                                            SizedBox(width: 8),
-                                            Text(
-                                              LocalizedText.get('reset_dpi'),
-                                              style: TextStyle(color: Colors.black87, fontSize: 14),
+                                    const SizedBox(width: 12),
+                                    ClipPath(
+                                      clipper: _SquircleClipper(cornerRadius: _SquircleRadii.small),
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          gradient: kMainGradient,
+                                        ),
+                                        child: ElevatedButton(
+                                          onPressed: (_isLoading || _dpiLoading) ? null : () {
+                                            final dpi = int.tryParse(_dpiController.text);
+                                            if (dpi != null && dpi > 0) {
+                                              _setRearDpi(dpi);
+                                            } else {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(content: Text(LocalizedText.get('invalid_dpi_value'))),
+                                              );
+                                            }
+                                          },
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: kTransparent,
+                                            foregroundColor: Colors.white,
+                                            shadowColor: kTransparent,
+                                            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(_SquircleRadii.small),
                                             ),
-                                          ],
+                                          ),
+                                          child: Text(LocalizedText.get('set_button')),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: CustomPaint(
+                                    painter: _SquircleBorderPainter(
+                                      radius: _SquircleRadii.small,
+                                      color: Colors.black26,
+                                      strokeWidth: 1,
+                                    ),
+                                    child: ClipPath(
+                                      clipper: _SquircleClipper(cornerRadius: _SquircleRadii.small),
+                                      child: Material(
+                                      color: kTransparent,
+                                        child: InkWell(
+                                          onTap: (_isLoading || _dpiLoading) ? null : _resetRearDpi,
+                                            child: Padding(
+                                            padding: EdgeInsets.symmetric(vertical: 12),
+                                            child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                Icon(Icons.restore, color: Colors.black87, size: 20),
+                                                SizedBox(width: 8),
+                                                Text(
+                                                  LocalizedText.get('reset_dpi'),
+                                                  style: TextStyle(color: Colors.black87, fontSize: 14),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
                                         ),
                                       ),
                                     ),
                                   ),
                                 ),
-                              ),
-                            ),
-                            
-                            const SizedBox(height: 16),
-                            const Divider(color: Colors.black26, height: 1),
-                            const SizedBox(height: 16),
-                            
-                            // V2.1: 旋转控制
-                            Row(
-                              children: [
-                                Text(
-                                  LocalizedText.get('rotation_label'),
-                                  style: TextStyle(fontSize: 14, color: Colors.black87, fontWeight: FontWeight.w500),
+                                
+                                const SizedBox(height: 16),
+                                const Divider(color: Colors.black26, height: 1),
+                                const SizedBox(height: 16),
+                                
+                                // V2.1: 旋转控制
+                                Row(
+                                  children: [
+                                    Text(
+                                      LocalizedText.get('rotation_label'),
+                                      style: TextStyle(fontSize: 14, color: Colors.black87, fontWeight: FontWeight.w500),
+                                    ),
+                                    const Spacer(),
+                                    _buildRotationButton('0°', 0),
+                                    const SizedBox(width: 6),
+                                    _buildRotationButton('90°', 1),
+                                    const SizedBox(width: 6),
+                                    _buildRotationButton('180°', 2),
+                                    const SizedBox(width: 6),
+                                    _buildRotationButton('270°', 3),
+                                  ],
                                 ),
-                                const Spacer(),
-                                _buildRotationButton('0°', 0),
-                                const SizedBox(width: 6),
-                                _buildRotationButton('90°', 1),
-                                const SizedBox(width: 6),
-                                _buildRotationButton('180°', 2),
-                                const SizedBox(width: 6),
-                                _buildRotationButton('270°', 3),
                               ],
                             ),
-                            
-                          ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
                   
                 SizedBox(height: 20),
                 
@@ -1007,22 +1007,22 @@ class _HomePageState extends State<HomePage> {
                               color: kWhite25,
                             ),
                             child: Row(
-                          children: [
-                            Text(
-                              LocalizedText.get('proximity_detection'),
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
+                              children: [
+                                Text(
+                                  LocalizedText.get('proximity_detection'),
+                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
+                                ),
+                                const Spacer(),
+                                _GradientToggle(
+                                  value: _proximitySensorEnabled,
+                                  onChanged: _toggleProximitySensor,
+                                ),
+                              ],
                             ),
-                            const Spacer(),
-                            _GradientToggle(
-                              value: _proximitySensorEnabled,
-                              onChanged: _toggleProximitySensor,
-                            ),
-                          ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ),
                   ],
                 ),
                   
@@ -1231,7 +1231,58 @@ class _HomePageState extends State<HomePage> {
                                 ),
                               ],
                             ),
-                            
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                  
+                SizedBox(height: 20),
+
+                // V2.5: Test Notification Card
+                CustomPaint(
+                  painter: _SquircleBorderPainter(
+                    radius: _SquircleRadii.large,
+                    color: Colors.white.withOpacity(0.5),
+                    strokeWidth: 1.5,
+                  ),
+                  child: ClipPath(
+                    clipper: _SquircleClipper(cornerRadius: _SquircleRadii.large),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 0, sigmaY: 0),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.25),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  LocalizedText.get('test_notification'),
+                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
+                                ),
+                                const Spacer(),
+                                IconButton(
+                                  icon: const Icon(Icons.comment, size: 24),
+                                  color: Colors.black87,
+                                  onPressed: () async {
+                                    await _openAppTestNotification();
+                                  },
+                                  //tooltip: LocalizedText.get('tooltip_select_apps'),
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(),
+                                )
+                                // const SizedBox(width: 8),
+                                // _GradientToggle(
+                                //   value: _notificationEnabled,
+                                //   onChanged: _toggleNotificationService,
+                                // ),
+                              ],
+                            ),
                           ],
                         ),
                       ),
@@ -1398,65 +1449,65 @@ class _HomePageState extends State<HomePage> {
                       child: Material(
                         color: Colors.transparent,
                         child: InkWell(
-                        onTap: () async {
-                          // 跳转到汐木泽酷安主页
-                          try {
-                            await platform.invokeMethod('openCoolApkProfileXmz');
-                          } catch (e) {
-                            print(LocalizedText.get('open_coolapk_failed', [e.toString()]));
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(LocalizedText.get('install_coolapk_first'))),
-                              );
+                          onTap: () async {
+                            // 跳转到汐木泽酷安主页
+                            try {
+                              await platform.invokeMethod('openCoolApkProfileXmz');
+                            } catch (e) {
+                              print(LocalizedText.get('open_coolapk_failed', [e.toString()]));
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(LocalizedText.get('install_coolapk_first'))),
+                                );
+                              }
                             }
-                          }
-                        },
-                        splashColor: Colors.white.withOpacity(0.3),
-                        highlightColor: Colors.white.withOpacity(0.2),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.25),
-                          ),
-                          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Text(
-                                '🧪',
-                                style: TextStyle(fontSize: 20),
-                              ),
-                              const SizedBox(width: 6),
-                              Image.asset(
-                                'assets/kuan.png',
-                                width: 24,
-                                height: 24,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return const Icon(Icons.person, size: 24, color: Colors.black87);
-                                },
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                LocalizedText.get('author_xmz'),
-                                style: TextStyle(
-                                  color: Colors.black87,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
+                          },
+                          splashColor: Colors.white.withOpacity(0.3),
+                          highlightColor: Colors.white.withOpacity(0.2),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.25),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Text(
+                                  '🧪',
+                                  style: TextStyle(fontSize: 20),
                                 ),
-                              ),
-                              const SizedBox(width: 4),
-                              Icon(
-                                Icons.open_in_new,
-                                size: 16,
-                                color: Colors.black54,
-                              ),
-                            ],
+                                const SizedBox(width: 6),
+                                Image.asset(
+                                  'assets/kuan.png',
+                                  width: 24,
+                                  height: 24,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return const Icon(Icons.person, size: 24, color: Colors.black87);
+                                  },
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  LocalizedText.get('author_xmz'),
+                                  style: TextStyle(
+                                    color: Colors.black87,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Icon(
+                                  Icons.open_in_new,
+                                  size: 16,
+                                  color: Colors.black54,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
                     ),
                   ),
                 ),
-              ),
                   
                 SizedBox(height: 16),
                 
@@ -1600,7 +1651,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
   
-  
   // V2.1: 构建旋转按钮（精确超椭圆，统一12px圆角）
   Widget _buildRotationButton(String label, int rotation) {
     bool isSelected = _currentRotation == rotation;
@@ -1707,7 +1757,6 @@ class _HomePageState extends State<HomePage> {
       print(LocalizedText.get('flutter_rotation_end'));
     }
   }
-  
 }
 
 // 渐变开关，统一四段渐变样式，替代系统绿色Switch

@@ -1,4 +1,3 @@
-
 /*
  * Author: AntiOblivionis
  * QQ: 319641317
@@ -17,6 +16,8 @@
 package com.tgwgroup.MiRearScreenSwitcher;
 
 import android.Manifest;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -29,6 +30,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
 import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 import com.tgwgroup.MiRearScreenSwitcher.misc.Constants;
 import io.flutter.embedding.android.FlutterActivity;
@@ -59,8 +61,10 @@ public class MainActivity extends FlutterActivity {
             .version(1);
     
     // Shizuku监听器（关键！）
-    private final Shizuku.OnBinderReceivedListener binderReceivedListener =
-            this::bindTaskService;
+    private final Shizuku.OnBinderReceivedListener binderReceivedListener = 
+        () -> {
+            bindTaskService();
+        };
     
     private final Shizuku.OnBinderDeadListener binderDeadListener = 
         () -> {
@@ -180,7 +184,7 @@ public class MainActivity extends FlutterActivity {
             String text = intent.getStringExtra("text");
             long when = intent.getLongExtra("when", System.currentTimeMillis());
             
-            Log.d(TAG, "Received notification intent for: " + packageName);
+            Log.d(TAG, "[BABZ] Received notification intent for: " + packageName);
             startNotificationOnRearScreen(packageName, title, text, when);
         }
     }
@@ -256,6 +260,45 @@ public class MainActivity extends FlutterActivity {
                 Log.e(TAG, "Failed to show notification on rear screen", e);
             }
         }).start();
+    }
+
+    public void generateTestNotification(Context context) {
+        String channelId = "test_channel_id";
+        String channelName = "Test Notifications";
+
+        // Crear el canal de notificación (requerido para Android 8+)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(
+                    channelId,
+                    channelName,
+                    NotificationManager.IMPORTANCE_DEFAULT
+            );
+            NotificationManager manager = context.getSystemService(NotificationManager.class);
+            if (manager != null) {
+                manager.createNotificationChannel(channel);
+            }
+
+            Intent newIntent = new Intent();
+            newIntent.setAction("SHOW_NOTIFICATION_ON_REAR_SCREEN");
+            newIntent.putExtra("packageName", "com.tgwgroup.MiRearScreenSwitcher");
+            newIntent.putExtra("title", "Test Notification");
+            newIntent.putExtra("text", "This is a test notification from MRSS.");
+            newIntent.putExtra("when", System.currentTimeMillis());
+            onNewIntent(newIntent);0
+        }
+
+        // Construir la notificación
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, channelId)
+                .setSmallIcon(android.R.drawable.ic_dialog_info) // Usa tu propio ícono si lo prefieres
+                .setContentTitle("Notificación de prueba")
+                .setContentText("Esta es una notificación generada desde Dart vía Java")
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT);
+
+        // Mostrar la notificación
+        NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        if (manager != null) {
+            manager.notify(1001, builder.build()); // ID arbitrario
+        }
     }
     
     /**
@@ -899,6 +942,25 @@ public class MainActivity extends FlutterActivity {
                             result.success(true);
                         } catch (Exception e) {
                             Log.e(TAG, "Failed to set notification duration", e);
+                            result.error("ERROR", e.getMessage(), null);
+                        }
+                        break;
+                    }
+
+                    case "generateTestNotification": {
+                        // V2.5: notificacion de prueba
+                        try {
+                            sendBroadcast(new Intent("com.tgwgroup.MiRearScreenSwitcher.INTERRUPT_NOTIFICATION_ANIMATION"));
+
+                            //taskService.collapseStatusBar();
+
+                            generateTestNotification(
+                                    getApplicationContext()
+                            );
+
+                            result.success(true);
+                        } catch (Exception e) {
+                            Log.e(TAG, "Failed to call test notification", e);
                             result.error("ERROR", e.getMessage(), null);
                         }
                         break;

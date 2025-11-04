@@ -47,8 +47,9 @@ public class RearScreenNotificationActivity extends Activity {
     private android.content.BroadcastReceiver interruptReceiver = new android.content.BroadcastReceiver() {
         @Override
         public void onReceive(android.content.Context context, android.content.Intent intent) {
+            Log.d(TAG, "🔄 [BABZ] 收到打断广播（新动画来了），立即销毁但不恢复Launcher");
+            Log.d(TAG, "🔄 [BABZ] [BroadcastReceiver] [onReceive] intent" + intent.toString());
             if ("com.tgwgroup.MiRearScreenSwitcher.INTERRUPT_NOTIFICATION_ANIMATION".equals(intent.getAction())) {
-                Log.d(TAG, "🔄 收到打断广播（新动画来了），立即销毁但不恢复Launcher");
                 finish();
             }
         }

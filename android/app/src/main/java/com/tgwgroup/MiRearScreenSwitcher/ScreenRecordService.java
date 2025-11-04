@@ -463,10 +463,10 @@ public class ScreenRecordService extends Service {
                 // 生成文件名
                 String timestamp = new java.text.SimpleDateFormat("yyyyMMdd_HHmmss")
                     .format(new java.util.Date());
-                currentVideoPath = "/storage/emulated/0/Movies/MRSS_" + timestamp + ".mp4";
+                currentVideoPath = "/storage/emulated/0/DCIM/ScreenRecorder/MRSS_" + timestamp + ".mp4"; // /0/Movies
                 
                 // 创建保存目录
-                taskService.executeShellCommand("mkdir -p /storage/emulated/0/Movies");
+                taskService.executeShellCommand("mkdir -p /storage/emulated/0/DCIM/ScreenRecorder"); // /0/Movies
                 Log.d(TAG, "✓ 目录已创建");
                 
                 // 获取背屏的真实display ID（照抄截图逻辑）

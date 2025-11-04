@@ -483,9 +483,9 @@ public class TaskService extends ITaskService.Stub {
             int exitCode = process.waitFor();
             
             if (exitCode == 0) {
-
+                Log.e(TAG, "[BABZ] [collapseStatusBar] SUCCESS ");
             } else {
-
+                Log.e(TAG, "[BABZ] [collapseStatusBar] EXCEPTION exitCode: " + exitCode);
             }
 
             return (exitCode == 0);
@@ -635,7 +635,7 @@ public class TaskService extends ITaskService.Stub {
             }
 
             // 创建保存目录
-            String mkdirCmd = "mkdir -p /storage/emulated/0/Pictures/RearDisplay";
+            String mkdirCmd = "mkdir -p /storage/emulated/0/DCIM/Screenshots"; // Pictures/RearDisplay"
 
             ProcessBuilder pb1 = new ProcessBuilder("sh", "-c", mkdirCmd);
             Process process1 = pb1.start();
@@ -665,7 +665,7 @@ public class TaskService extends ITaskService.Stub {
             // 生成文件名（带时间戳）
             String timestamp = new java.text.SimpleDateFormat("yyyyMMdd_HHmmss")
                 .format(new java.util.Date());
-            String filename = "/storage/emulated/0/Pictures/RearDisplay/RD_" + timestamp + ".png";
+            String filename = "/storage/emulated/0/DCIM/Screenshots/RD_" + timestamp + ".png"; // Pictures/RearDisplay";
             
             // 执行截图命令
             String screenshotCmd = "screencap -p -d " + displayId + " " + filename;
