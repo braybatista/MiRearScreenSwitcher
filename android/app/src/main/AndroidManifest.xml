@@ -192,7 +192,8 @@
             android:directBootAware="true"
             android:showWhenLocked="true"
             android:turnScreenOn="true"
-            android:hardwareAccelerated="true">
+            android:hardwareAccelerated="true"
+            android:screenOrientation="landscape">
             <meta-data android:name="miui.rear.policy" android:value="miui"/>
         </activity>
         
@@ -207,7 +208,8 @@
             android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|uiMode|smallestScreenSize|density"
             android:directBootAware="true"
             android:showWhenLocked="true"
-            android:turnScreenOn="true">
+            android:turnScreenOn="true"
+            android:screenOrientation="landscape">
             <meta-data android:name="miui.rear.policy" android:value="miui"/>
         </activity>
             
