@@ -284,7 +284,7 @@ public class MainActivity extends FlutterActivity {
             newIntent.putExtra("title", "Test Notification");
             newIntent.putExtra("text", "This is a test notification from MRSS.");
             newIntent.putExtra("when", System.currentTimeMillis());
-            onNewIntent(newIntent);0
+            onNewIntent(newIntent);
         }
 
         // Construir la notificación
