@@ -1018,7 +1018,7 @@ public class RearScreenNotificationActivity extends Activity {
     }
     
     /**
-     * 启动通知动画期间的唤醒和杀死launcher循环
+     * 启动通知动画期间的唤醒循环
      */
     private void startWakeupAndKillLoop() {
         if (isWakeupRunning) {
@@ -1050,16 +1050,8 @@ public class RearScreenNotificationActivity extends Activity {
                     } catch (Throwable t) {
                         Log.w(TAG, "发送wakeup失败: " + t.getMessage());
                     }
-                    
-                    // 持续杀死官方launcher（防止其抢占背屏）
-                    try {
-                        taskService.disableSubScreenLauncher();
-                        Log.d(TAG, "🔪 Launcher killed");
-                    } catch (Throwable t) {
-                        Log.w(TAG, "杀死launcher失败: " + t.getMessage());
-                    }
                 } else {
-                    Log.w(TAG, "⚠️ TaskService is null, skipping wakeup and kill");
+                    Log.w(TAG, "⚠️ TaskService is null, skipping wakeup");
                 }
                 
                 // 100ms后继续
@@ -1072,7 +1064,7 @@ public class RearScreenNotificationActivity extends Activity {
         // 立即开始
         if (wakeupHandler != null) {
             wakeupHandler.post(wakeupRunnable);
-            Log.d(TAG, "✓ Wakeup and kill loop started");
+            Log.d(TAG, "✓ Wakeup loop started");
         }
     }
     
