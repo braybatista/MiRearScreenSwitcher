@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">MRSS</string>
-    <string name="tile_label">Switch to Rear</string>
+    <string name="tile_label">Rear Switcher</string>
     <string name="tile_screenshot_label">Rear Screenshot</string>
     <string name="tile_record_label">Rear Screen Record</string>
     <string name="uninstall_title">"😭Do you really want to uninstall MRSS?😭\n😭Do you really want to uninstall MRSS?😭\n😭Do you really want to uninstall MRSS?😭\n"</string>
