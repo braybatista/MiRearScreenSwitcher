@@ -515,7 +515,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  // V2.4: 启动通知服务
+  // V3.1.2: 启动通知音乐服务
   Future<void> _startNotificationMusicService() async {
     try {
       await platform.invokeMethod('startNotificationMusicService');
@@ -563,28 +563,33 @@ class _HomePageState extends State<HomePage> {
   }
 
   // V3.1.3: Toggle notification music service
-  Future<void> _toggleNotificationMusicService(bool enabled) async {   
+  Future<void> _toggleNotificationMusicService(bool enabled) async {
+    if (enabled) {
+      final bool hasPermission = await platform.invokeMethod('checkNotificationListenerPermission');
+      if (!hasPermission) {
+        await platform.invokeMethod('openNotificationListenerSettings');
+        return;
+      }
+    }
+
     try {
-      // 先保存到SharedPreferences
+      // SharedPreferences
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('notification_music_service_enabled', enabled);
       
       // 通知Service更新状态
-      await platform.invokeMethod('toggleNotificationMusicService', {'enabled': enabled});
-      
-      // 如果开启，启动NotificationService
-      if (enabled) {
-        await _startNotificationService();
-      }
+      final resultToggleNotificationMusicService = await platform.invokeMethod('toggleNotificationMusicService', {'enabled': enabled});
+
+      print("[BABZ] resultToggleNotificationMusicService: " + resultToggleNotificationMusicService.toString());
       
       setState(() {
-        _notificationMusicEnabled = enabled;
+        _notificationMusicEnabled = resultToggleNotificationMusicService;
       });
-      print(LocalizedText.get('notification_service_toggled', [enabled ? LocalizedText.get('enabled') : LocalizedText.get('disabled')]));
+      print(LocalizedText.get('notification_service_toggled', [resultToggleNotificationMusicService ? LocalizedText.get('enabled') : LocalizedText.get('disabled')]));
     } catch (e) {
       print(LocalizedText.get('toggle_notification_service_failed', [e.toString()]));
       setState(() {
-        _notificationMusicEnabled = !enabled;
+        _notificationMusicEnabled = false;
       });
     }
   }

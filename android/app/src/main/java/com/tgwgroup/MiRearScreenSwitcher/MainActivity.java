@@ -953,24 +953,22 @@ public class MainActivity extends FlutterActivity {
                         boolean enabled = (boolean) call.argument("enabled");
 
                         SharedPreferences prefs = getSharedPreferences("mrss_settings", MODE_PRIVATE);
-                        prefs.edit()
-                                .putBoolean("notification_music_service_enabled", enabled)
-                                .apply();
+                        //prefs.edit().putBoolean("notification_music_service_enabled", enabled).apply();
 
                         if (enabled) {
-                            // 开启时启动服务
                             Intent intent = new Intent(this, NotificationService.class);
                             startService(intent);
-                            Log.d(TAG, "NotificationMusicService started");
+                            Log.d(TAG, "[BABZ] NotificationMusicService started");
                         } else {
-                            // 关闭时停止服务
                             Intent intent = new Intent(this, NotificationService.class);
                             stopService(intent);
-                            Log.d(TAG, "NotificationMusicService stopped");
+                            Log.d(TAG, "[BABZ] NotificationMusicService stopped");
                         }
 
-                        Log.d(TAG, "Notification Music service enabled: " + enabled);
-                        result.success(true);
+                        Log.d(TAG, "[BABZ] NotificationMusicService status: " + enabled);
+                        Log.d(TAG, "[BABZ] NotificationService status: " + isNotificationListenerEnabled());
+                        prefs.edit().putBoolean("notification_music_service_enabled", enabled && isNotificationListenerEnabled()).apply();
+                        result.success(enabled && isNotificationListenerEnabled());
                         break;
                     }
                     

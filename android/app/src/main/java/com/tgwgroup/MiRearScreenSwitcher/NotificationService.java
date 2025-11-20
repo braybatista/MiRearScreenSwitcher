@@ -248,7 +248,6 @@ public class NotificationService extends NotificationListenerService {
             if (packageName.equals(getPackageName())) return;
 
             loadSettings();
-            if (!serviceEnabled && !musicServiceEnabled) return;
 
             NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
             if (followDndMode && nm != null && nm.getCurrentInterruptionFilter() != NotificationManager.INTERRUPTION_FILTER_ALL) {
@@ -261,31 +260,35 @@ public class NotificationService extends NotificationListenerService {
             }
 
             if (notification.extras.getParcelable(Notification.EXTRA_MEDIA_SESSION) != null) {
-                Log.d(TAG, "Media notification posted from: " + sbn.getPackageName());
-                Bundle extras = notification.extras;
-                String title = extras.getString(Notification.EXTRA_TITLE);
-                String artist = extras.getString(Notification.EXTRA_TEXT);
-                Bitmap albumArt = getBitmapFromNotification(extras);
-                MediaSession.Token token = extras.getParcelable(Notification.EXTRA_MEDIA_SESSION);
-                boolean isPlaying = false;
-                if (token != null) {
-                    MediaController mc = new MediaController(this, token);
-                    PlaybackState playbackState = mc.getPlaybackState();
-                    if (playbackState != null) {
-                        isPlaying = playbackState.getState() == PlaybackState.STATE_PLAYING;
+                if (musicServiceEnabled) {
+                    Log.d(TAG, "Media notification posted from: " + sbn.getPackageName());
+                    Bundle extras = notification.extras;
+                    String title = extras.getString(Notification.EXTRA_TITLE);
+                    String artist = extras.getString(Notification.EXTRA_TEXT);
+                    Bitmap albumArt = getBitmapFromNotification(extras);
+                    MediaSession.Token token = extras.getParcelable(Notification.EXTRA_MEDIA_SESSION);
+                    boolean isPlaying = false;
+                    if (token != null) {
+                        MediaController mc = new MediaController(this, token);
+                        PlaybackState playbackState = mc.getPlaybackState();
+                        if (playbackState != null) {
+                            isPlaying = playbackState.getState() == PlaybackState.STATE_PLAYING;
+                        }
                     }
+                    Log.d(TAG, "Extracted media info: " + title + " - " + artist + " | isPlaying: " + isPlaying);
+                    showMusicOnRearScreen(title, artist, albumArt, isPlaying, token);
                 }
-                Log.d(TAG, "Extracted media info: " + title + " - " + artist + " | isPlaying: " + isPlaying);
-                showMusicOnRearScreen(title, artist, albumArt, isPlaying, token);
             } else {
-                if (!selectedApps.contains(packageName)) return;
+                if (serviceEnabled) {
+                    if (!selectedApps.contains(packageName)) return;
 
-                String title = notification.extras.getString(Notification.EXTRA_TITLE, "");
-                String text = notification.extras.getString(Notification.EXTRA_TEXT, "");
-                if (privacyHideTitle) title = "隐私模式已启用";
-                if (privacyHideContent) text = "你有一条新消息";
+                    String title = notification.extras.getString(Notification.EXTRA_TITLE, "");
+                    String text = notification.extras.getString(Notification.EXTRA_TEXT, "");
+                    if (privacyHideTitle) title = "隐私模式已启用";
+                    if (privacyHideContent) text = "你有一条新消息";
 
-                showNotificationOnRearScreen(packageName, title, text, notification.when);
+                    showNotificationOnRearScreen(packageName, title, text, notification.when);
+                }
             }
         } catch (Exception e) {
             Log.e(TAG, "❌ 处理通知时出错", e);
