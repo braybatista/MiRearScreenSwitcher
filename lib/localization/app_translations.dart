@@ -51,6 +51,8 @@ class AppTranslations {
         'notification_permission_requested': '通知权限请求已发送',
         'notification_permission_request_failed': '请求通知权限失败: %s',
         'notification_service_started': 'NotificationService已启动',
+        'notification_music_service_started': 'NotificationServiceMusic已启动',
+        'notification_music_service_start_failed': '启动NotificationServiceMusic失败: %s',
         'notification_service_start_failed': '启动NotificationService失败: %s',
 
         // UI labels and actions
@@ -74,6 +76,7 @@ class AppTranslations {
 
         // Misc
         'rear_screen_notifications': '📢 背屏通知',
+        'rear_screen_music_notifications': '📢 背屏音乐通知',
         'test_notification': '📢 测试通知',
         'burnin_warning': '警告：可能导致烧屏和额外耗电',
         'select_apps': '选择应用',
@@ -171,6 +174,15 @@ class AppTranslations {
         'dpi_set_success': 'Rear screen DPI set to %d',
         'dpi_set_error': 'Failed to set rear DPI: %s',
         'dpi_set_error_with_hint': 'Set failed: %s\\nPlease ensure Shizuku is running',
+        'dpi_get_failed_attempt': 'Failed to obtain rear screen DPI (attempted %d/5): %s',
+        'dpi_get_failed_final': 'Failed to get the rear screen DPI',
+        'load_settings_failed': 'Failed to load settings: %s',
+        'load_proximity_failed': 'Failed to load proximity sensor settings: %s',
+        'notification_listener_status': 'Notification listener status: %s',
+        'check_notification_permission_failed': 'Failed to check notification permissions: %s',
+        'notification_service_toggled': 'Rear screen notification service is %s',
+        'toggle_notification_service_failed': 'Failed to toggle the rear screen notification service: %s',
+        'start_charging_service_failed': 'Failed to start the charging service: %s',
         'shizuku_running': 'Shizuku running',
         'rotation_label': '🔄 rotation',
         'dpi_reset_success': 'Rear screen DPI reset',
@@ -181,6 +193,8 @@ class AppTranslations {
         'notification_permission_requested': 'Notification permission requested',
         'notification_permission_request_failed': 'Notification permission request failed: %s',
         'notification_service_started': 'NotificationService started',
+        'notification_music_service_started': 'NotificationServiceMusic started',
+        'notification_music_service_start_failed': 'Failed to start NotificationServiceMusic: %s',
         'notification_service_start_failed': 'Failed to start NotificationService: %s',
 
         'restart_app': 'Restart App',
@@ -201,6 +215,7 @@ class AppTranslations {
         'rotation_error': 'Error: %s',
 
         'rear_screen_notifications': '📢 Rear Screen Notifications',
+        'rear_screen_music_notifications': '📢 Rear Screen Music Notifications',
         'test_notification': '📢 Test Notification',
         'burnin_warning': 'Warning: May cause screen burn-in and extra power consumption',
         'select_apps': 'Select apps',
@@ -300,6 +315,15 @@ class AppTranslations {
         'dpi_set_success': 'DPI de pantalla trasera establecido en %d',
         'dpi_set_error': 'Error al establecer DPI trasera: %s',
         'dpi_set_error_with_hint': 'Error al establecer: %s\\nAsegúrese que Shizuku esté ejecutándose',
+        'dpi_get_failed_attempt': 'Error al obtener el DPI de la pantalla trasera (intento %d/5): %s',
+        'dpi_get_failed_final': 'Error al obtener el DPI de la pantalla trasera',
+        'load_settings_failed': 'Error al cargar la configuración: %s',
+        'load_proximity_failed': 'Error al cargar la configuración del sensor de proximidad: %s',
+        'notification_listener_status': 'Estado del receptor de notificaciones: %s',
+        'check_notification_permission_failed': 'Error al comprobar los permisos de notificación: %s',
+        'notification_service_toggled': 'El servicio de notificaciones de la pantalla trasera está activado: %s',
+        'toggle_notification_service_failed': 'Error al activar/desactivar el servicio de notificaciones de la pantalla trasera: %s',
+        'start_charging_service_failed': 'Error al iniciar el servicio de carga Para iniciar el servicio de carga: %s',
         'shizuku_running': 'Shizuku ejecutandose',
         'rotation_label': '🔄 rotación',
         'dpi_reset_success': 'DPI de pantalla trasera restablecido',
@@ -310,6 +334,8 @@ class AppTranslations {
         'notification_permission_requested': 'Solicitud de permiso de notificaciones enviada',
         'notification_permission_request_failed': 'Solicitud de permiso de notificaciones fallida: %s',
         'notification_service_started': 'NotificationService iniciado',
+        'notification_music_service_started': 'NotificationService de Musica iniciado',
+        'notification_music_service_start_failed': 'Error al iniciar NotificationService de Musica: %s',
         'notification_service_start_failed': 'Error al iniciar NotificationService: %s',
 
         'restart_app': 'Reiniciar app',
@@ -330,6 +356,7 @@ class AppTranslations {
         'rotation_error': 'Error: %s',
 
         'rear_screen_notifications': '📢 Notificaciones Aplicaciones',
+        'rear_screen_music_notifications': '📢 Notification de Musica',
         'test_notification': '📢 Notificación de prueba',
         'burnin_warning': 'Advertencia: Puede causar marcas en la pantalla y consumo extra',
         'select_apps': 'Seleccionar apps',

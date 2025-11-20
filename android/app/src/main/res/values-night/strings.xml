@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="nextbutton">nextButton</string>
+    <string name="playpausebutton">playpausebutton</string>
+    <string name="prevbutton">prevbutton</string>
+</resources>

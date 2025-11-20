@@ -139,7 +139,7 @@
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="@string/rear_screen_notification_service"/>
         </service>
-        
+       
         <!-- V2.6: URI命令处理服务（后台执行） -->
         <service
             android:name=".UriCommandService"
@@ -192,8 +192,7 @@
             android:directBootAware="true"
             android:showWhenLocked="true"
             android:turnScreenOn="true"
-            android:hardwareAccelerated="true"
-            android:screenOrientation="landscape">
+            android:hardwareAccelerated="true">
             <meta-data android:name="miui.rear.policy" android:value="miui"/>
         </activity>
         
@@ -208,8 +207,21 @@
             android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|uiMode|smallestScreenSize|density"
             android:directBootAware="true"
             android:showWhenLocked="true"
-            android:turnScreenOn="true"
-            android:screenOrientation="landscape">
+            android:turnScreenOn="true">
+            <meta-data android:name="miui.rear.policy" android:value="miui"/>
+        </activity>
+
+        <activity
+            android:name=".RearScreenMusicActivity"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:launchMode="singleInstance"
+            android:taskAffinity="com.tgwgroup.MiRearScreenSwitcher.music"
+            android:theme="@style/Theme.Transparent"
+            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|uiMode|smallestScreenSize|density"
+            android:directBootAware="true"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true">
             <meta-data android:name="miui.rear.policy" android:value="miui"/>
         </activity>
             

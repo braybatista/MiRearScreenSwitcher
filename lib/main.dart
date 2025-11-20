@@ -173,6 +173,8 @@ class _HomePageState extends State<HomePage> {
   // Default disabled (requires permission)
   bool _notificationDarkMode = false;  // 通知暗夜模式（默认关闭）
   // Notification dark mode (default off)
+  //V3.1.3: Notification Music Service
+  bool _notificationMusicEnabled = false;
   
   @override
   void initState() {
@@ -454,6 +456,7 @@ class _HomePageState extends State<HomePage> {
         _alwaysWakeUpEnabled = prefs.getBool('always_wakeup_enabled') ?? false;  // V3.5: 加载未投放应用时常亮开关状态
         _notificationDarkMode = prefs.getBool('notification_dark_mode') ?? false;
         _notificationEnabled = prefs.getBool('notification_service_enabled') ?? false;  // V2.4: 加载背屏通知开关状态
+        _notificationMusicEnabled = prefs.getBool('notification_music_service_enabled') ?? false;  // V2.4: 加载背屏通知开关状态
       });
       
       // 启动充电服务（如果开关打开）
@@ -467,6 +470,11 @@ class _HomePageState extends State<HomePage> {
       // V2.4: 如果通知开关开启，启动NotificationService
       if (_notificationEnabled) {
         _startNotificationService();
+      }
+
+      // V3.1.2: NotificationMusicService
+      if (_notificationMusicEnabled){
+        _startNotificationMusicService();
       }
     } catch (e) {
       print(LocalizedText.get('load_settings_failed', [e.toString()]));
@@ -491,7 +499,6 @@ class _HomePageState extends State<HomePage> {
     try {
       final bool hasPermission = await platform.invokeMethod('checkNotificationListenerPermission');
       // 只更新权限状态，不覆盖开关状态
-      // _notificationEnabled 现在由 SharedPreferences 中的开关状态控制
       print(LocalizedText.get('notification_listener_status', [hasPermission.toString()]));
     } catch (e) {
       print(LocalizedText.get('check_notification_permission_failed', [e.toString()]));
@@ -507,6 +514,17 @@ class _HomePageState extends State<HomePage> {
       print(LocalizedText.get('notification_service_start_failed', [e.toString()]));
     }
   }
+
+  // V2.4: 启动通知服务
+  Future<void> _startNotificationMusicService() async {
+    try {
+      await platform.invokeMethod('startNotificationMusicService');
+      print(LocalizedText.get('notification_music_service_started'));
+    } catch (e) {
+      print(LocalizedText.get('notification_music_service_start_failed', [e.toString()]));
+    }
+  }
+  
   
   // V2.4: Toggle notification service
   Future<void> _toggleNotificationService(bool enabled) async {
@@ -540,6 +558,33 @@ class _HomePageState extends State<HomePage> {
       // 切换失败，恢复原状态
       setState(() {
         _notificationEnabled = !enabled;
+      });
+    }
+  }
+
+  // V3.1.3: Toggle notification music service
+  Future<void> _toggleNotificationMusicService(bool enabled) async {   
+    try {
+      // 先保存到SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('notification_music_service_enabled', enabled);
+      
+      // 通知Service更新状态
+      await platform.invokeMethod('toggleNotificationMusicService', {'enabled': enabled});
+      
+      // 如果开启，启动NotificationService
+      if (enabled) {
+        await _startNotificationService();
+      }
+      
+      setState(() {
+        _notificationMusicEnabled = enabled;
+      });
+      print(LocalizedText.get('notification_service_toggled', [enabled ? LocalizedText.get('enabled') : LocalizedText.get('disabled')]));
+    } catch (e) {
+      print(LocalizedText.get('toggle_notification_service_failed', [e.toString()]));
+      setState(() {
+        _notificationMusicEnabled = !enabled;
       });
     }
   }
@@ -1237,11 +1282,53 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                 ),
-                  
+
                 SizedBox(height: 20),
 
-                // V2.5: Test Notification Card
+                // V3.1.3 Activate Music Notification service
                 CustomPaint(
+                  painter: _SquircleBorderPainter(
+                    radius: _SquircleRadii.large,
+                    color: Colors.white.withOpacity(0.5),
+                    strokeWidth: 1.5,
+                  ),
+                  child: ClipPath(
+                    clipper: _SquircleClipper(cornerRadius: _SquircleRadii.large),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 0, sigmaY: 0),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.25),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  LocalizedText.get('rear_screen_music_notifications'),
+                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
+                                ),
+                                const Spacer(),
+                                const SizedBox(width: 8),
+                                _GradientToggle(
+                                  value: _notificationMusicEnabled,
+                                  onChanged: _toggleNotificationMusicService,
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+                SizedBox(height: 20),
+
+                // V3.1.2: Test Notification Card
+                /*CustomPaint(
                   painter: _SquircleBorderPainter(
                     radius: _SquircleRadii.large,
                     color: Colors.white.withOpacity(0.5),
@@ -1272,15 +1359,9 @@ class _HomePageState extends State<HomePage> {
                                   onPressed: () async {
                                     await _openAppTestNotification();
                                   },
-                                  //tooltip: LocalizedText.get('tooltip_select_apps'),
                                   padding: EdgeInsets.zero,
                                   constraints: const BoxConstraints(),
                                 )
-                                // const SizedBox(width: 8),
-                                // _GradientToggle(
-                                //   value: _notificationEnabled,
-                                //   onChanged: _toggleNotificationService,
-                                // ),
                               ],
                             ),
                           ],
@@ -1290,7 +1371,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                   
-                SizedBox(height: 20),
+                SizedBox(height: 20), */
                 
                 // 使用教程 - 可点击跳转到酷安帖子
                 CustomPaint(

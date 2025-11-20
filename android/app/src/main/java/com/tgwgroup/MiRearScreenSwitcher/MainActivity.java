@@ -24,7 +24,9 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
+import android.media.session.MediaSession;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -263,42 +265,8 @@ public class MainActivity extends FlutterActivity {
     }
 
     public void generateTestNotification(Context context) {
-        String channelId = "test_channel_id";
-        String channelName = "Test Notifications";
-
-        // Crear el canal de notificación (requerido para Android 8+)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(
-                    channelId,
-                    channelName,
-                    NotificationManager.IMPORTANCE_DEFAULT
-            );
-            NotificationManager manager = context.getSystemService(NotificationManager.class);
-            if (manager != null) {
-                manager.createNotificationChannel(channel);
-            }
-
-            Intent newIntent = new Intent();
-            newIntent.setAction("SHOW_NOTIFICATION_ON_REAR_SCREEN");
-            newIntent.putExtra("packageName", "com.tgwgroup.MiRearScreenSwitcher");
-            newIntent.putExtra("title", "Test Notification");
-            newIntent.putExtra("text", "This is a test notification from MRSS.");
-            newIntent.putExtra("when", System.currentTimeMillis());
-            onNewIntent(newIntent);
-        }
-
-        // Construir la notificación
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, channelId)
-                .setSmallIcon(android.R.drawable.ic_dialog_info) // Usa tu propio ícono si lo prefieres
-                .setContentTitle("Notificación de prueba")
-                .setContentText("Esta es una notificación generada desde Dart vía Java")
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT);
-
-        // Mostrar la notificación
-        NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-        if (manager != null) {
-            manager.notify(1001, builder.build()); // ID arbitrario
-        }
+        Intent intent = new Intent("com.tgwgroup.MiRearScreenSwitcher.FIND_AND_SHOW_MEDIA_NOTIFICATION");
+        context.sendBroadcast(intent);
     }
     
     /**
@@ -950,19 +918,59 @@ public class MainActivity extends FlutterActivity {
                     case "generateTestNotification": {
                         // V2.5: notificacion de prueba
                         try {
-                            sendBroadcast(new Intent("com.tgwgroup.MiRearScreenSwitcher.INTERRUPT_NOTIFICATION_ANIMATION"));
+                            Intent intent = new Intent("INTERRUPT_NOTIFICATION_ANIMATION");
+                            intent.setPackage(getPackageName());
+                            sendBroadcast(intent);
 
                             //taskService.collapseStatusBar();
 
-                            generateTestNotification(
-                                    getApplicationContext()
-                            );
+                            generateTestNotification(getApplicationContext());
 
                             result.success(true);
                         } catch (Exception e) {
                             Log.e(TAG, "Failed to call test notification", e);
                             result.error("ERROR", e.getMessage(), null);
                         }
+                        break;
+                    }
+
+                    case "startNotificationMusicService": {
+                        // V2.5: inicio de servicio de musica
+                        try {
+                            Intent intent = new Intent("com.tgwgroup.MiRearScreenSwitcher.FIND_AND_SHOW_MEDIA_NOTIFICATION");
+                            sendBroadcast(intent);
+
+                            result.success(true);
+                        } catch (Exception e) {
+                            Log.e(TAG, "Failed to call test notification", e);
+                            result.error("ERROR", e.getMessage(), null);
+                        }
+                        break;
+                    }
+
+                    case "toggleNotificationMusicService": {
+                        // V2.4: 切换通知服务
+                        boolean enabled = (boolean) call.argument("enabled");
+
+                        SharedPreferences prefs = getSharedPreferences("mrss_settings", MODE_PRIVATE);
+                        prefs.edit()
+                                .putBoolean("notification_music_service_enabled", enabled)
+                                .apply();
+
+                        if (enabled) {
+                            // 开启时启动服务
+                            Intent intent = new Intent(this, NotificationService.class);
+                            startService(intent);
+                            Log.d(TAG, "NotificationMusicService started");
+                        } else {
+                            // 关闭时停止服务
+                            Intent intent = new Intent(this, NotificationService.class);
+                            stopService(intent);
+                            Log.d(TAG, "NotificationMusicService stopped");
+                        }
+
+                        Log.d(TAG, "Notification Music service enabled: " + enabled);
+                        result.success(true);
                         break;
                     }
                     
