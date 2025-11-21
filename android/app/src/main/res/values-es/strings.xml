@@ -54,7 +54,7 @@
     <!-- SwitchToRearTileService -->
     <string name="switch_service_not_ready">Servicio no listo</string>
     <string name="switch_grant_permissions">Por favor, abra la aplicación y otorgue los permisos primero</string>
-    <string name="switch_switching">Cambiando...</string>
+    <string name="switch_switching">Cambiando…</string>
     <string name="switch_back_first">Por favor, cambie %s de nuevo a la pantalla principal primero</string>
     <string name="switch_rear_screen_occupied">✗ Pantalla trasera ocupada</string>
     <string name="switch_moved_to_rear_screen">%s ha sido movido a la pantalla trasera</string>

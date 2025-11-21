@@ -101,7 +101,7 @@
             android:foregroundServiceType="specialUse">
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="@string/rear_screen_roaming_service"/>
+                android:value="后屏漫游服务"/>
         </service>
         
         <!-- V2.3: 充电动画服务 -->
@@ -112,7 +112,7 @@
             android:foregroundServiceType="specialUse">
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="@string/charging_animation_service"/>
+                android:value="充电动画服务"/>
         </service>
         
         <!-- V3.5: 未投放应用时常亮服务 -->
@@ -123,7 +123,7 @@
             android:foregroundServiceType="specialUse">
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="@string/keep_rear_screen_awake_service"/>
+                android:value="保持后屏唤醒服务"/>
         </service>
         
         <!-- V2.4: 通知监听服务 -->
@@ -138,7 +138,7 @@
             </intent-filter>
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="@string/rear_screen_notification_service"/>
+                android:value="后屏通知服务"/>
         </service>
        
         <!-- V2.6: URI命令处理服务（后台执行） -->
@@ -155,7 +155,7 @@
             android:foregroundServiceType="specialUse">
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="@string/rear_screen_record_service"/>
+                android:value="后屏录制服务"/>
         </service>
 
         

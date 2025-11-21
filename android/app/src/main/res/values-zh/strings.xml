@@ -19,7 +19,7 @@
     <string name="toast_switch_failed">切换失败</string>
     <string name="toast_return_to_main">已返回主屏幕</string>
     <string name="toast_not_on_rear">未在后置屏幕上</string>
-    <string name="toast_app_not_found">​​未找到应用</string>
+    <string name="toast_app_not_found">未找到应用</string>
     <string name="toast_screenshot_saved">已保存后置屏幕截图</string>
     <string name="toast_please_switch_back">请先将 %s 切换回主屏幕</string>
     <string name="notif_kernel_service">MRSS 核心服务</string>
@@ -54,7 +54,7 @@
     <!-- SwitchToRearTileService -->
     <string name="switch_service_not_ready">服务未就绪</string>
     <string name="switch_grant_permissions">请先打开应用授权</string>
-    <string name="switch_switching">切换中...</string>
+    <string name="switch_switching">切换中…</string>
     <string name="switch_back_first">请先将 %s 切换回主屏</string>
     <string name="switch_rear_screen_occupied">✗ 背屏已占用</string>
     <string name="switch_moved_to_rear_screen">%s 已投放到背屏</string>
