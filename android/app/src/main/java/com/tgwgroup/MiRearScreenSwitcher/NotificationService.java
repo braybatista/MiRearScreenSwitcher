@@ -759,27 +759,95 @@ public class NotificationService extends NotificationListenerService {
             return;
         }
         
+        PowerManager.WakeLock screenWakeLock = null;
         try {
-            // 1. Guardar los datos en el caché (no se pueden pasar por shell command)
+            // Encender la pantalla
+            PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+            if (pm != null) {
+                screenWakeLock = pm.newWakeLock(
+                    PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP,
+                    "MRSS:MusicScreenWake"
+                );
+                screenWakeLock.acquire(3000);
+                Log.d(TAG, "💡 Screen wake lock acquired");
+            }
+            
+            try { Thread.sleep(200); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+            
+            // Wake lock para mantener el servicio activo
+            acquireWakeLock(6000);
+            
+            // Pausar monitoreo de RearScreenKeeperService
+            try {
+                RearScreenKeeperService.pauseMonitoring();
+            } catch (Throwable t) {
+                Log.w(TAG, "pauseMonitoring failed: " + t.getMessage());
+            }
+            
+            // Guardar datos en caché
             MusicNotificationCache.getInstance().setData(title, artist, albumArt, isPlaying, token);
             
-            // 2. Deshabilitar el launcher predeterminado y despertar la pantalla
-            taskService.disableSubScreenLauncher();
-            taskService.executeShellCommand("input -d 1 keyevent KEYCODE_WAKEUP");
+            // Preparar pantalla trasera
+            try {
+                taskService.disableSubScreenLauncher();
+                taskService.executeShellCommand("input -d 1 keyevent KEYCODE_WAKEUP");
+            } catch (Throwable t) {
+                Log.w(TAG, "Failed to prepare rear screen: " + t.getMessage());
+            }
             
-            // 3. Iniciar la actividad directamente en la pantalla trasera (display 1)
+            // Lanzar widget: main screen + move to display 1
             String componentName = getPackageName() + "/" + RearScreenMusicActivity.class.getName();
-            String directCmd = String.format(
-                "am start --display 1 -n %s --ez fromCache true",
-                componentName
-            );
+            taskService.executeShellCommand("am start -n " + componentName + " --ez fromCache true");
             
-            taskService.executeShellCommand(directCmd);
-            Log.d(TAG, "Music widget launched directly on rear screen");
+            try { Thread.sleep(100); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+            
+            // Buscar taskId y mover a display 1
+            String musicTaskId = findTaskId("RearScreenMusicActivity", 30);
+            if (musicTaskId != null) {
+                taskService.executeShellCommand("service call activity_task 50 i32 " + musicTaskId + " i32 1");
+                Log.d(TAG, "✅ Music widget moved to display 1");
+            } else {
+                Log.e(TAG, "❌ Could not find music widget taskId");
+            }
             
         } catch (Exception e) {
-            Log.e(TAG, "Failed to show music widget on rear screen", e);
+            Log.e(TAG, "❌ Failed to show music widget", e);
+        } finally {
+            if (screenWakeLock != null && screenWakeLock.isHeld()) {
+                try {
+                    screenWakeLock.release();
+                } catch (Exception e) {
+                    Log.w(TAG, "Failed to release screen wake lock", e);
+                }
+            }
+            releaseWakeLock();
         }
+    }
+    
+    /**
+     * Busca el taskId de una actividad en el stack
+     * @param activityName Nombre de la actividad a buscar
+     * @param maxAttempts Número máximo de intentos
+     * @return taskId si se encuentra, null en caso contrario
+     */
+    private String findTaskId(String activityName, int maxAttempts) {
+        try {
+            for (int attempt = 0; attempt < maxAttempts; attempt++) {
+                try { Thread.sleep(50); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+                
+                String stackResult = taskService.executeShellCommandWithResult("am stack list | grep " + activityName);
+                if (stackResult != null && !stackResult.trim().isEmpty()) {
+                    java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("taskId=(\\d+)");
+                    java.util.regex.Matcher matcher = pattern.matcher(stackResult);
+                    if (matcher.find()) {
+                        return matcher.group(1);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error finding taskId for " + activityName, e);
+        }
+        return null;
     }
 
     private void restoreRearScreenLauncher() {
