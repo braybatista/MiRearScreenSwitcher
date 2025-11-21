@@ -148,6 +148,7 @@ public class RearScreenNotificationActivity extends Activity {
         View container = findViewById(R.id.notification_container);
         View appNameContainer = findViewById(R.id.app_name_container);
         View contentContainer = findViewById(R.id.notification_content_container);
+        ImageView closeButton = findViewById(R.id.close_button);
         
         // 加载应用信息
         try {
@@ -198,6 +199,14 @@ public class RearScreenNotificationActivity extends Activity {
         
         // 开始动画
         startNotificationAnimation(appIconCenter, appNameContainer, contentContainer);
+        
+        // 设置关闭按钮点击事件
+        if (closeButton != null) {
+            closeButton.setOnClickListener(v -> {
+                Log.d(TAG, "Close button clicked, finishing activity");
+                finish();
+            });
+        }
         
         // 点击跳转到应用（优先在背屏启动）
         container.setOnClickListener(v -> {
@@ -445,6 +454,7 @@ public class RearScreenNotificationActivity extends Activity {
                 TextView notificationContent = findViewById(R.id.notification_content);
                 View appNameContainer = findViewById(R.id.app_name_container);
                 View contentContainer = findViewById(R.id.notification_content_container);
+                ImageView closeButton = findViewById(R.id.close_button);
                 
                 // 加载应用信息
                 try {
@@ -495,6 +505,14 @@ public class RearScreenNotificationActivity extends Activity {
                 
                 // 启动动画
                 startNotificationAnimation(appIconCenter, appNameContainer, contentContainer);
+                
+                // 设置关闭按钮点击事件
+                if (closeButton != null) {
+                    closeButton.setOnClickListener(v -> {
+                        Log.d(TAG, "Close button clicked in onResume, finishing activity");
+                        finish();
+                    });
+                }
                 
                 // 设置点击事件和自动关闭
                 container.setOnClickListener(v -> {

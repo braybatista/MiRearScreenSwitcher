@@ -43,6 +43,8 @@ import android.util.Log;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.tgwgroup.MiRearScreenSwitcher.misc.Constants;
+
 import rikka.shizuku.Shizuku;
 
 /**
@@ -171,6 +173,7 @@ public class NotificationService extends NotificationListenerService {
         IntentFilter controlFilter = new IntentFilter();
         controlFilter.addAction("com.tgwgroup.MiRearScreenSwitcher.FIND_AND_SHOW_MEDIA_NOTIFICATION");
         controlFilter.addAction("com.tgwgroup.MiRearScreenSwitcher.RESTORE_REAR_STATE");
+        registerReceiver(controlReceiver, controlFilter, Context.RECEIVER_NOT_EXPORTED);
 
         Log.d(TAG, "✓ 广播接收器已注册");
 
@@ -239,7 +242,67 @@ public class NotificationService extends NotificationListenerService {
     public void onNotificationPosted(StatusBarNotification sbn) {
         super.onNotificationPosted(sbn);
         loadNotificationServiceSettings();
-        if (!serviceEnabled && !musicServiceEnabled) return;
+        
+        try {
+            Notification notification = sbn.getNotification();
+            if (notification == null) return;
+            
+            // Verificar si es una notificación de medios
+            boolean isMediaNotification = notification.extras.getParcelable(Notification.EXTRA_MEDIA_SESSION) != null;
+            
+            if (isMediaNotification && musicServiceEnabled) {
+                handleMusicNotification(sbn, "posted");
+            } else if (!isMediaNotification && serviceEnabled) {
+                handleNotification(sbn, "posted");
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error en onNotificationPosted", e);
+        }
+    }
+
+    @Override
+    public void onNotificationRemoved(StatusBarNotification sbn) {
+        super.onNotificationRemoved(sbn);
+        Log.d(TAG, "Notification removed from: " + sbn.getPackageName());
+        // Cuando se remueve una notificación de medios, podríamos restaurar el launcher
+        // pero solo si no hay otras notificaciones de medios activas
+    }
+
+    @Override
+    public void onNotificationRankingUpdate(RankingMap rankingMap) {
+        super.onNotificationRankingUpdate(rankingMap);
+        // Este método se llama cuando las notificaciones se actualizan sin ser removidas
+        // Es crucial para detectar cambios en notificaciones de medios (play/pause/etc)
+        Log.d(TAG, "Notification ranking updated - checking for media updates");
+        
+        loadNotificationServiceSettings();
+        if (!musicServiceEnabled) return;
+        
+        // Buscar notificaciones de medios activas en el ranking actual
+        StatusBarNotification[] activeNotifications = getActiveNotifications();
+        if (activeNotifications != null) {
+            for (StatusBarNotification sbn : activeNotifications) {
+                Notification notification = sbn.getNotification();
+                if (notification != null && notification.extras.getParcelable(Notification.EXTRA_MEDIA_SESSION) != null) {
+                    // Encontramos una notificación de medios, procesarla
+                    Log.d(TAG, "Media notification update detected from: " + sbn.getPackageName());
+
+                    //handleNotification(sbn, "ranking_update");
+                    handleMusicNotification(sbn, "ranking_update");
+                    break; // Solo procesar la primera notificación de medios encontrada
+                }
+            }
+        }
+    }
+
+    /**
+     * Método centralizado para procesar notificaciones
+     * @param sbn La notificación a procesar
+     * @param source El origen de la llamada (para logging)
+     */
+    private void handleNotification(StatusBarNotification sbn, String source) {
+        loadNotificationServiceSettings();
+        if (!serviceEnabled) return;
 
         try {
             String packageName = sbn.getPackageName();
@@ -259,39 +322,72 @@ public class NotificationService extends NotificationListenerService {
                 if (notification.extras.getParcelable(Notification.EXTRA_MEDIA_SESSION) == null) return;
             }
 
-            if (notification.extras.getParcelable(Notification.EXTRA_MEDIA_SESSION) != null) {
-                if (musicServiceEnabled) {
-                    Log.d(TAG, "Media notification posted from: " + sbn.getPackageName());
-                    Bundle extras = notification.extras;
-                    String title = extras.getString(Notification.EXTRA_TITLE);
-                    String artist = extras.getString(Notification.EXTRA_TEXT);
-                    Bitmap albumArt = getBitmapFromNotification(extras);
-                    MediaSession.Token token = extras.getParcelable(Notification.EXTRA_MEDIA_SESSION);
-                    boolean isPlaying = false;
-                    if (token != null) {
-                        MediaController mc = new MediaController(this, token);
-                        PlaybackState playbackState = mc.getPlaybackState();
-                        if (playbackState != null) {
-                            isPlaying = playbackState.getState() == PlaybackState.STATE_PLAYING;
-                        }
-                    }
-                    Log.d(TAG, "Extracted media info: " + title + " - " + artist + " | isPlaying: " + isPlaying);
-                    showMusicOnRearScreen(title, artist, albumArt, isPlaying, token);
-                }
-            } else {
-                if (serviceEnabled) {
-                    if (!selectedApps.contains(packageName)) return;
+            if (!selectedApps.contains(packageName)) return;
 
-                    String title = notification.extras.getString(Notification.EXTRA_TITLE, "");
-                    String text = notification.extras.getString(Notification.EXTRA_TEXT, "");
-                    if (privacyHideTitle) title = "隐私模式已启用";
-                    if (privacyHideContent) text = "你有一条新消息";
+            // Extraer título y texto de manera segura, manejando SpannableString
+            CharSequence titleSeq = notification.extras.getCharSequence(Notification.EXTRA_TITLE);
+            CharSequence textSeq = notification.extras.getCharSequence(Notification.EXTRA_TEXT);
+            String title = titleSeq != null ? titleSeq.toString() : "";
+            String text = textSeq != null ? textSeq.toString() : "";
+            
+            if (privacyHideTitle) title = Constants.NOTIFICATION_SERVICE_PRIVACY_MODE_ENABLED;
+            if (privacyHideContent) text = Constants.NOTIFICATION_SERVICE_NEW_MESSAGE;
 
-                    showNotificationOnRearScreen(packageName, title, text, notification.when);
+            Log.d(TAG, "Extracted notification info (" + source + "): " + titleSeq + " - " + textSeq);
+            Log.d(TAG, "Extracted notification info (" + source + "): " + title + " - " + text);
+
+            showNotificationOnRearScreen(packageName, title, text, notification.when);
+
+        } catch (Exception e) {
+            Log.e(TAG, "❌ 处理通知时出错 (" + source + ")", e);
+        }
+    }
+
+    private void handleMusicNotification(StatusBarNotification sbn, String source) {
+        loadNotificationServiceSettings();
+        if (!musicServiceEnabled) return;
+
+        try {
+            String packageName = sbn.getPackageName();
+            Notification notification = sbn.getNotification();
+
+            if (packageName.equals(getPackageName())) return;
+
+            loadSettings();
+
+            NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            if (followDndMode && nm != null && nm.getCurrentInterruptionFilter() != NotificationManager.INTERRUPTION_FILTER_ALL) {
+                if (notification.extras.getParcelable(Notification.EXTRA_MEDIA_SESSION) == null) return;
+            }
+
+            android.app.KeyguardManager km = (android.app.KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
+            if (onlyWhenLocked && km != null && !km.isKeyguardLocked()) {
+                if (notification.extras.getParcelable(Notification.EXTRA_MEDIA_SESSION) == null) return;
+            }
+
+            Log.d(TAG, "Media notification from " + source + ": " + sbn.getPackageName());
+            Bundle extras = notification.extras;
+            
+            // Extraer título y artista de manera segura, manejando SpannableString
+            CharSequence titleSeq = extras.getCharSequence(Notification.EXTRA_TITLE);
+            CharSequence artistSeq = extras.getCharSequence(Notification.EXTRA_TEXT);
+            String title = titleSeq != null ? titleSeq.toString() : "";
+            String artist = artistSeq != null ? artistSeq.toString() : "";
+            
+            Bitmap albumArt = getBitmapFromNotification(extras);
+            MediaSession.Token token = extras.getParcelable(Notification.EXTRA_MEDIA_SESSION);
+            boolean isPlaying = false;
+            if (token != null) {
+                MediaController mc = new MediaController(this, token);
+                PlaybackState playbackState = mc.getPlaybackState();
+                if (playbackState != null) {
+                    isPlaying = playbackState.getState() == PlaybackState.STATE_PLAYING;
                 }
             }
+            Log.d(TAG, "Extracted media info (" + source + "): " + title + " - " + artist + " | isPlaying: " + isPlaying);
+            showMusicOnRearScreen(title, artist, albumArt, isPlaying, token);
         } catch (Exception e) {
-            Log.e(TAG, "❌ 处理通知时出错", e);
+            Log.e(TAG, "❌ 处理通知时出错 (" + source + ")", e);
         }
     }
 
@@ -332,8 +428,13 @@ public class NotificationService extends NotificationListenerService {
                 Log.d(TAG, "Found active media notification from: " + sbn.getPackageName());
 
                 Bundle extras = notification.extras;
-                String title = extras.getString(Notification.EXTRA_TITLE);
-                String artist = extras.getString(Notification.EXTRA_TEXT);
+                
+                // Extraer título y artista de manera segura, manejando SpannableString
+                CharSequence titleSeq = extras.getCharSequence(Notification.EXTRA_TITLE);
+                CharSequence artistSeq = extras.getCharSequence(Notification.EXTRA_TEXT);
+                String title = titleSeq != null ? titleSeq.toString() : "";
+                String artist = artistSeq != null ? artistSeq.toString() : "";
+                
                 Bitmap albumArt = getBitmapFromNotification(extras);
                 MediaSession.Token token = extras.getParcelable(Notification.EXTRA_MEDIA_SESSION);
 
@@ -387,59 +488,28 @@ public class NotificationService extends NotificationListenerService {
             Log.e(TAG, "TaskService is not available. Cannot show music widget.");
             return;
         }
-        new Thread(() -> {
-            try {
-                // 1. Disable default launcher and wake up screen
-                taskService.disableSubScreenLauncher();
-                taskService.executeShellCommand("input -d 1 keyevent KEYCODE_WAKEUP");
-                Thread.sleep(50);
-
-                // 2. Start the activity on the main display first to pass complex data
-                Intent intent = new Intent(this, RearScreenMusicActivity.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                intent.putExtra("title", title);
-                intent.putExtra("artist", artist);
-                intent.putExtra("albumArt", albumArt);
-                intent.putExtra("isPlaying", isPlaying);
-                intent.putExtra("token", token);
-                startActivity(intent);
-
-                // 3. Poll for the task ID
-                String musicTaskId = null;
-                int attempts = 0;
-                while (musicTaskId == null && attempts < 50) {
-                    Thread.sleep(50);
-                    String result = taskService.executeShellCommandWithResult("am stack list | grep RearScreenMusicActivity");
-                    if (result != null && !result.trim().isEmpty()) {
-                        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("taskId=(\\d+)");
-                        java.util.regex.Matcher matcher = pattern.matcher(result);
-                        if (matcher.find()) {
-                            musicTaskId = matcher.group(1);
-                            Log.d(TAG, "Found music activity taskId=" + musicTaskId);
-                            break;
-                        }
-                    }
-                    attempts++;
-                }
-
-                // 4. If found, move the task to the rear display
-                if (musicTaskId != null) {
-                    String moveCmd = "service call activity_task 50 i32 " + musicTaskId + " i32 1";
-                    taskService.executeShellCommand(moveCmd);
-                    Log.d(TAG, "Music widget moved to rear screen.");
-
-                    // 5. Force a redraw by sending the intent again
-                    Thread.sleep(250); // Give the system time to move the activity
-                    startActivity(intent);
-
-                } else {
-                    Log.e(TAG, "Failed to find taskId for RearScreenMusicActivity.");
-                }
-
-            } catch (Exception e) {
-                Log.e(TAG, "Failed to show music widget on rear screen", e);
-            }
-        }).start();
+        
+        try {
+            // 1. Guardar los datos en el caché (no se pueden pasar por shell command)
+            MusicNotificationCache.getInstance().setData(title, artist, albumArt, isPlaying, token);
+            
+            // 2. Deshabilitar el launcher predeterminado y despertar la pantalla
+            taskService.disableSubScreenLauncher();
+            taskService.executeShellCommand("input -d 1 keyevent KEYCODE_WAKEUP");
+            
+            // 3. Iniciar la actividad directamente en la pantalla trasera (display 1)
+            String componentName = getPackageName() + "/" + RearScreenMusicActivity.class.getName();
+            String directCmd = String.format(
+                "am start --display 1 -n %s --ez fromCache true",
+                componentName
+            );
+            
+            taskService.executeShellCommand(directCmd);
+            Log.d(TAG, "Music widget launched directly on rear screen");
+            
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to show music widget on rear screen", e);
+        }
     }
 
     private void restoreRearScreenLauncher() {

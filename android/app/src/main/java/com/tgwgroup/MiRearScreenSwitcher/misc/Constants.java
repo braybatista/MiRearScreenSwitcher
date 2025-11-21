@@ -54,4 +54,8 @@ public class Constants {
 
     // RearScreenRecordTileService
     public static final String REAR_SCREEN_RECORD_TILE_SERVICE_GRANT_OVERLAY_PERMISSION = Utils.getLocalizedString("Please grant overlay permission first", "Por favor, conceda el permiso de superposición primero", "请先授予悬浮窗权限");
+
+    // NotificationService
+    public static final String NOTIFICATION_SERVICE_PRIVACY_MODE_ENABLED = Utils.getLocalizedString("Privacy mode enabled", "Modo privacidad activado", "隐私模式已启用");
+    public static final String NOTIFICATION_SERVICE_NEW_MESSAGE = Utils.getLocalizedString("You have a new message", "Tienes un nuevo mensaje", "你有一条新消息");
 }

@@ -6,7 +6,7 @@ class AppTranslations {
   static const Map<String, Map<String, String>> translations = {
     'zh': {
         // Shizuku / Status
-        'checking_shizuku': '正在检查Shizuku...',
+        'checking_shizuku': '正在检查 Shizuku...',
         'shizuku_ready': '一切就绪',
         'shizuku_authorized': '✓ Shizuku已授权，立即请求通知权限',
         'shizuku_not_running': '权限不足',
@@ -151,7 +151,7 @@ class AppTranslations {
     },
     'en': {
         'checking_shizuku': 'Checking Shizuku...',
-        'shizuku_ready': 'All Ready',
+        'shizuku_ready': 'All Set',
         'shizuku_authorized': '✓ Shizuku authorized, requesting notification permission',
         'shizuku_not_running': 'Insufficient Permissions',
         'shizuku_not_authorized': 'Shizuku not running or not authorized',
@@ -203,10 +203,10 @@ class AppTranslations {
         'permission_required': 'Permission required',
         'cancel': 'Cancel',
         'go_to_settings': 'Open settings',
-        'select_apps_count': 'Select Apps (%d)',
-        'select_all': 'Select all',
-        'select_none': 'Select none',
-        'show_system_apps': 'Show system apps',
+        'select_apps_count': 'Sel. Apps (%d)',
+        'select_all': 'Sel. All',
+        'select_none': 'Sel. none',
+        'show_system_apps': 'System apps',
         'notification_settings': 'Notification Settings',
         'seconds_set': 'Set to %d seconds',
 

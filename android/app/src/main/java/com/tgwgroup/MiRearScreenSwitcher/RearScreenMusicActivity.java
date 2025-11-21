@@ -126,29 +126,60 @@ public class RearScreenMusicActivity extends Activity {
             mediaController.unregisterCallback(mediaCallback);
         }
 
-        MediaSession.Token token = intent.getParcelableExtra("token");
-
-        // Create a new MediaController from the new token
-        if (token != null) {
-            mediaController = new MediaController(this, token);
-            mediaController.registerCallback(mediaCallback);
-            // Initial update
-            updateMetadata(mediaController.getMetadata());
-            updatePlaybackState(mediaController.getPlaybackState());
-        } else {
-            Log.e(TAG, "MediaSession.Token is null. Media controls will not work.");
-            // Populate with placeholder data if token is null
-            String title = intent.getStringExtra("title");
-            updateTitle("          " + title);
-            artistView.setText(intent.getStringExtra("artist"));
-            Bitmap albumArt = intent.getParcelableExtra("albumArt");
-            if (albumArt != null) {
-                albumArtView.setImageBitmap(albumArt);
-                updateBackground(albumArt);
+        // Verificar si los datos vienen del caché (lanzado por shell command)
+        boolean fromCache = intent.getBooleanExtra("fromCache", false);
+        
+        if (fromCache) {
+            // Obtener datos del caché
+            MusicNotificationCache cache = MusicNotificationCache.getInstance();
+            MediaSession.Token token = cache.getToken();
+            
+            if (token != null) {
+                mediaController = new MediaController(this, token);
+                mediaController.registerCallback(mediaCallback);
+                // Initial update
+                updateMetadata(mediaController.getMetadata());
+                updatePlaybackState(mediaController.getPlaybackState());
             } else {
-                albumArtView.setImageResource(android.R.color.darker_gray);
+                Log.e(TAG, "MediaSession.Token is null in cache. Using cached data.");
+                String title = cache.getTitle();
+                updateTitle("          " + title);
+                artistView.setText(cache.getArtist());
+                Bitmap albumArt = cache.getAlbumArt();
+                if (albumArt != null) {
+                    albumArtView.setImageBitmap(albumArt);
+                    updateBackground(albumArt);
+                } else {
+                    albumArtView.setImageResource(android.R.color.darker_gray);
+                }
+                updatePlayPauseButton(cache.isPlaying());
             }
-            updatePlayPauseButton(intent.getBooleanExtra("isPlaying", false));
+        } else {
+            // Modo legacy: datos vienen directamente del intent
+            MediaSession.Token token = intent.getParcelableExtra("token");
+
+            // Create a new MediaController from the new token
+            if (token != null) {
+                mediaController = new MediaController(this, token);
+                mediaController.registerCallback(mediaCallback);
+                // Initial update
+                updateMetadata(mediaController.getMetadata());
+                updatePlaybackState(mediaController.getPlaybackState());
+            } else {
+                Log.e(TAG, "MediaSession.Token is null. Media controls will not work.");
+                // Populate with placeholder data if token is null
+                String title = intent.getStringExtra("title");
+                updateTitle("          " + title);
+                artistView.setText(intent.getStringExtra("artist"));
+                Bitmap albumArt = intent.getParcelableExtra("albumArt");
+                if (albumArt != null) {
+                    albumArtView.setImageBitmap(albumArt);
+                    updateBackground(albumArt);
+                } else {
+                    albumArtView.setImageResource(android.R.color.darker_gray);
+                }
+                updatePlayPauseButton(intent.getBooleanExtra("isPlaying", false));
+            }
         }
     }
 
