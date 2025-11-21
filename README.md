@@ -26,7 +26,7 @@
 
     ---
 
-    ## ✨ Features (V3.1.2)
+    ## ✨ Features (V3.1.3)
 
     - 🎯 **Quick Switching**: Switch applications to the back screen with one click via the quick switch in the control center.
     - 📸 **Back Screen Screenshot**: Capture the back screen with one click and save it to your photo album (automatically collapses the control center, keycode wake-up)
@@ -228,6 +228,11 @@
     - mrss://screenshot - Take a screenshot
     - mrss://config?dpi=xxx&rotation=x - Configure the rotation; the rotation value should be 0-3, the same as adb shell
 
+    ### V3.1.3 New Features
+    - ✅ **Multi-language Support**: Fully supports Simplified Chinese, Traditional Chinese, and English, automatically following the system language.
+    - ✅ **UI Detail Optimizations**: Fixed UI display issues in multi-language environments, optimized text wrapping and alignment.
+    - ✅ **Notification Localization**: Notification titles and content support multi-language display.
+
     ### V3.1.2 New Features
     - ✅ **Optimized Application Selection**: Selected applications are automatically displayed at the top of the list for easier management.
     - ✅ **Optimized Kill Logic**: The launcher kill strategy has been optimized to kill only once before the animation starts, avoiding frequent operations.
@@ -265,6 +270,16 @@
     ---
 
     ## 📝 Changelog
+
+    ### V3.1.3 (2025)
+
+    #### New Features
+    - Full multilingual support (Simplified/Traditional/English)
+    - Fully localized notification content and Toast messages
+
+    #### Optimizations
+    - Fixed UI text overflow issue in English mode
+    - Optimized text display in multilingual environments
 
     ### V3.1.2 (2025)
 
@@ -379,7 +394,7 @@
 
     ---
 
-    ## ✨ 功能特性 (V3.1.2)
+    ## ✨ 功能特性 (V3.1.3)
 
     - 🎯 **快捷切换**: 通过控制中心快捷开关一键将应用切换到背屏
     - 📸 **背屏截图**: 一键截取背屏画面并保存到相册（自动收起控制中心，keycode唤醒）
@@ -582,6 +597,12 @@
     - mrss://screenshot - 截图
     - mrss://config?dpi=xxx&rotation=x - 配置，rotation传入的旋转应为0-3，与adb shell相同
 
+    ### V3.1.3 新增特性
+
+    - ✅ **多语言支持**: 完整支持简体中文、繁体中文和英文，自动跟随系统语言
+    - ✅ **UI细节优化**: 修复多语言环境下的UI显示问题，优化文本换行和对齐
+    - ✅ **通知本地化**: 通知标题和内容支持多语言显示
+
     ### V3.1.2 新增特性
 
     - ✅ **应用选择优化**: 选中的应用在列表中自动置顶显示，方便管理
@@ -624,6 +645,16 @@
     ---
 
     ## 📝 更新日志
+
+    ### V3.1.3 (2025)
+
+    #### 新功能
+    - 完整的多语言支持（简/繁/英）
+    - 通知内容和Toast消息全面本地化
+
+    #### 优化
+    - 修复英文模式下UI文本溢出问题
+    - 优化多语言环境下的文本显示效果
 
     ### V3.1.2 (2025)
 
@@ -746,7 +777,7 @@
 
     ---
 
-    ## ✨ Funcionalidades (V3.1.2)
+    ## ✨ Funcionalidades (V3.1.3)
 
     - 🎯 **Cambio rápido**: Cambia de aplicación a la pantalla anterior con un solo clic mediante el cambio rápido en el centro de control.
     - 📸 **Captura de pantalla trasera**: Captura la pantalla trasera con un solo clic y guárdala en tu álbum de fotos (el centro de control se minimiza automáticamente; se activa con un código de tecla).
@@ -946,7 +977,12 @@
         - mrss://screenshot - Tomar una captura de pantalla
         - mrss://config?dpi=xxx&rotation=x - Configurar la rotación; El valor de rotación debe ser de 0 a 3, igual que en la shell de adb.
 
-    ### Novedades de la versión 3.1.2
+    ### Novedades V3.1.3
+        - ✅ **Compatibilidad con varios idiomas**: Compatible con chino simplificado, chino tradicional e inglés, adaptándose automáticamente al idioma del sistema.
+        - ✅ **Optimizaciones de la interfaz de usuario**: Se han corregido problemas de visualización en entornos multilingües y se ha optimizado el ajuste de texto y la alineación.
+        - ✅ **Localización de notificaciones**: Los títulos y el contenido de las notificaciones ahora se muestran en varios idiomas.
+
+    ### Novedades V3.1.2
         - ✅ **Selección de aplicaciones optimizada**: Las aplicaciones seleccionadas se muestran automáticamente en la parte superior de la lista para una gestión más sencilla.
         - ✅ **Lógica de cierre optimizada**: La estrategia de cierre del lanzador se ha optimizado para cerrarse solo una vez antes de que comience la animación, evitando operaciones frecuentes.
 
@@ -983,6 +1019,16 @@
     ---
 
     ## 📝 Registro de cambios
+
+    ### V3.1.3 (2025)
+
+    #### New Features
+    - Full multilingual support (Simplified/Traditional/English)
+    - Fully localized notification content and Toast messages
+
+    #### Optimizations
+    - Fixed UI text overflow issue in English mode
+    - Optimized text display in multilingual environments
 
     ### V3.1.2 (2025)
 

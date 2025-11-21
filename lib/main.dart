@@ -23,14 +23,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'localization/app_translations.dart';
 import 'localization/localized_text.dart';
 import 'theme/colors.dart';
+/* import 'package:flutter_localizations/flutter_localizations.dart';
+import 'l10n/app_localizations.dart'; */
 
 bool isDarkMode = false;
 
 void main() async {
   // Initialize Flutter bindings
   WidgetsFlutterBinding.ensureInitialized();
-
-  print("[BABZ] [main] init");
   
   // Set immersive status bar
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
@@ -120,89 +120,77 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
+enum ShizukuStatus { checking, running, error }
+
 class _HomePageState extends State<HomePage> {
   static const platform = MethodChannel('com.display.switcher/task');
-  
+
+  // Status Enum
+  ShizukuStatus _shizukuStatus = ShizukuStatus.checking;
   bool _shizukuRunning = false;
-  String _statusMessage = '正在检查Shizuku...';
+  // String _statusMessage = 'Checking Shizuku...'; // Removed
+  String _customErrorTitle = ''; // For specific error types
   bool _isLoading = false;
-  bool _hasError = false;  // 是否有错误
-  String _errorDetail = '';  // 是否有错误
-  
+  bool _hasError = false; // 是否有错误
+  String _errorDetail = ''; // 错误详情
+
   // V15: 背屏DPI相关
   // V15: Rear screen DPI related
   int _currentRearDpi = 0;
-  bool _dpiLoading = true;  // DPI加载状态
-  // DPI loading state
+  bool _dpiLoading = true; // DPI加载状态
   final TextEditingController _dpiController = TextEditingController();
   final FocusNode _dpiFocusNode = FocusNode();
-  
-  // V2.1: 显示控制相关
-  // V2.1: Display control related
-  int _currentRotation = 0;  // 当前旋转方向 (0=0°, 1=90°, 2=180°, 3=270°)
-  // Current rotation direction (0=0°, 1=90°, 2=180°, 3=270°)
-  
-  // V2.2: 接近传感器开关
-  // V2.2: Proximity sensor toggle
-  bool _proximitySensorEnabled = true;  // 默认打开
-  // Default enabled
-  
+
+  // V2.1: 显示控制相关 - Display control related
+  int _currentRotation = 0; // 当前旋转方向 (0=0°, 1=90°, 2=180°, 3=270°) - Current rotation direction (0=0°, 1=90°, 2=180°, 3=270°)
+
+  // V2.2: 接近传感器开关 - Proximity sensor toggle
+  bool _proximitySensorEnabled = true; // 默认打开
+
   // V2.3: 充电动画开关
   // V2.3: Charging animation toggle
-  bool _chargingAnimationEnabled = true;  // 默认打开
-  // Default enabled
-  
-  // V2.5: 背屏常亮开关
-  // V2.5: Keep rear screen on toggle
-  bool _keepScreenOnEnabled = true;  // 默认打开
-  // Default enabled
-  
-  // V3.5: 未投放应用时常亮开关（与背屏常亮互斥）
-  // V3.5: Keep screen on when no app is pushed (mutually exclusive with keep rear screen on)
-  bool _alwaysWakeUpEnabled = false;  // 默认关闭
-  // Default disabled
-  
-  // V3.5: 充电动画常亮开关
-  // V3.5: Charging animation always-on toggle
-  bool _chargingAlwaysOnEnabled = false;  // 默认关闭
-  // Default disabled
-  
-  // V2.4: 通知功能
-  // V2.4: Notification features
-  bool _notificationEnabled = false;  // 默认关闭（需要授权）
-  // Default disabled (requires permission)
-  bool _notificationDarkMode = false;  // 通知暗夜模式（默认关闭）
-  // Notification dark mode (default off)
-  
+  bool _chargingAnimationEnabled = true; // 默认打开
+
+  // V2.5: 背屏常亮开关 - Keep rear screen on toggle
+  bool _keepScreenOnEnabled = true; // 默认打开
+
+  // V3.5: 未投放应用时常亮开关（与背屏常亮互斥）- Keep screen on when no app is pushed (mutually exclusive with keep rear screen on)
+  bool _alwaysWakeUpEnabled = false; // 默认关闭
+
+  // V3.5: 充电动画常亮开关 - Charging animation always-on toggle
+  bool _chargingAlwaysOnEnabled = false; // 默认关闭
+
+  // V2.4: 通知功能 - Notification features
+  bool _notificationEnabled = false; // 默认关闭（需要授权）
+
+  //V3.1.3: Notification Music Service
+  bool _notificationMusicEnabled = false;
+
   @override
   void initState() {
     super.initState();
     _checkShizuku();
-    _loadSettings();  // 加载所有设置
-    // Load all settings
+    _loadSettings(); // 加载所有设置 - Load all settings
     _setupMethodCallHandler();
-    _loadProximitySensorSetting();  // 加载接近传感器设置
-    // Load proximity sensor setting
-    
-    // 通知权限会在Shizuku授权完成后自动请求（见_checkShizuku）
-    // Notification permission will be requested automatically after Shizuku authorization (see _checkShizuku)
-    
-    // 延迟获取DPI和旋转，等待TaskService连接
-    // Delay getting DPI and rotation, wait for TaskService connection
+    _loadProximitySensorSetting(); // 加载接近传感器设置
+
+    // 通知权限会在Shizuku授权完成后自动请求（见_checkShizuku）- Notification permission will be requested automatically after Shizuku authorization (see _checkShizuku)
+
+    // 延迟获取DPI和旋转，等待TaskService连接 - Delay getting DPI and rotation, wait for TaskService connection
     Future.delayed(const Duration(seconds: 2), () {
       _getCurrentRearDpi();
       _getCurrentRotation();
     });
 
   }
-  
+
   @override
   void dispose() {
     _dpiController.dispose();
     _dpiFocusNode.dispose();
     super.dispose();
   }
-  
+
   void _setupMethodCallHandler() {
     platform.setMethodCallHandler((call) async {
       if (call.method == 'onShizukuPermissionChanged') {
@@ -211,7 +199,7 @@ class _HomePageState extends State<HomePage> {
         // 刷新状态
         // Refresh status
         await _checkShizuku();
-        
+
         // Shizuku授权完成后，立即请求通知权限
         if (granted) {
           print(LocalizedText.get('shizuku_authorized'));
@@ -220,7 +208,7 @@ class _HomePageState extends State<HomePage> {
       }
     });
   }
-  
+
   Future<void> _requestNotificationPermission() async {
     // Android 13+ 需要请求通知权限
     // Android 13+ requires notification permission
@@ -231,14 +219,14 @@ class _HomePageState extends State<HomePage> {
       print(LocalizedText.get('notification_permission_request_failed', [e.toString()]));
     }
   }
-  
+
   // V15: 获取当前背屏DPI
   // V15: Get current rear DPI
   Future<void> _getCurrentRearDpi() async {
     setState(() {
       _dpiLoading = true;
     });
-    
+
     // 最多重试5次，每次间隔1秒
     // Retry up to 5 times, 1 second between attempts
     for (int i = 0; i < 5; i++) {
@@ -258,7 +246,7 @@ class _HomePageState extends State<HomePage> {
         }
       }
     }
-    
+
     // 所有重试都失败
     setState(() {
       _dpiLoading = false;
@@ -266,37 +254,45 @@ class _HomePageState extends State<HomePage> {
     });
     print(LocalizedText.get('dpi_get_failed_final'));
   }
-  
+
   // V15: 设置背屏DPI
   Future<void> _setRearDpi(int dpi) async {
     if (_isLoading) return;
-    
+
     setState(() {
       _isLoading = true;
     });
-    
+
     try {
       // 先尝试重新连接TaskService，确保连接正常
       await platform.invokeMethod('ensureTaskServiceConnected');
-      
+
       // 等待连接建立
       await Future.delayed(const Duration(milliseconds: 500));
-      
+
       await platform.invokeMethod('setRearDpi', {'dpi': dpi});
-      
+
       // 刷新当前DPI
       await _getCurrentRearDpi();
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(LocalizedText.get('dpi_set_success', [dpi]))),
+          SnackBar(
+            content: Text(
+              LocalizedText.get('dpi_set_success', [dpi])
+            ),
+          ),
         );
       }
     } catch (e) {
       print(LocalizedText.get('dpi_set_error', [e.toString()]));
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(LocalizedText.get('dpi_set_error_with_hint', [e.toString()]))),
+          SnackBar(
+            content: Text(
+              LocalizedText.get('dpi_set_error_with_hint', [e.toString()])
+            ),
+          ),
         );
       }
     } finally {
@@ -305,37 +301,45 @@ class _HomePageState extends State<HomePage> {
       });
     }
   }
-  
+
   // V15: 还原背屏DPI
   Future<void> _resetRearDpi() async {
     if (_isLoading) return;
-    
+
     setState(() {
       _isLoading = true;
     });
-    
+
     try {
       // 先尝试重新连接TaskService，确保连接正常
       await platform.invokeMethod('ensureTaskServiceConnected');
-      
+
       // 等待连接建立
       await Future.delayed(const Duration(milliseconds: 500));
-      
+
       await platform.invokeMethod('resetRearDpi');
-      
+
       // 刷新当前DPI
       await _getCurrentRearDpi();
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(LocalizedText.get('dpi_reset_success'))),
+          SnackBar(
+            content: Text(
+              LocalizedText.get('dpi_reset_success')
+            ),
+          ),
         );
       }
     } catch (e) {
       print(LocalizedText.get('dpi_reset_error', [e.toString()]));
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(LocalizedText.get('dpi_reset_error_with_hint', [e.toString()]))),
+          SnackBar(
+            content: Text(
+              LocalizedText.get('dpi_reset_error_with_hint', [e.toString()])
+            ),
+          ),
         );
       }
     } finally {
@@ -344,43 +348,49 @@ class _HomePageState extends State<HomePage> {
       });
     }
   }
-  
+
   Future<void> _checkShizuku() async {
     setState(() {
-      _statusMessage = LocalizedText.get('current_dpi').replaceAll('%d', _currentRearDpi.toString());
+      _shizukuStatus = ShizukuStatus.checking;
       _hasError = false;
       _errorDetail = '';
     });
-    
+
     try {
-      // 简化检查：直接调用Java层
-      final result = await platform.invokeMethod('checkShizuku');
-      
+      // 简化检查：直接调用Java层，增加超时
+      final result = await platform
+          .invokeMethod('checkShizuku')
+          .timeout(const Duration(seconds: 3));
+
+      if (!mounted) return;
+
       setState(() {
         _shizukuRunning = result == true;
         _hasError = false;
         _errorDetail = '';
 
-        //_statusMessage = LocalizedText.get('checking_shizuku');
-        
         if (_shizukuRunning) {
-          _statusMessage = LocalizedText.get('shizuku_ready');
-          
+          _shizukuStatus = ShizukuStatus.running;
+
+          // Shizuku已授权，立即请求通知权限
           print(LocalizedText.get('shizuku_authorized'));
           _requestNotificationPermission();
         } else {
           _hasError = true;
-          _statusMessage = LocalizedText.get('shizuku_not_running');
+          _shizukuStatus = ShizukuStatus.error;
+          _customErrorTitle = ''; // Use default "Permission Required"
           _errorDetail = LocalizedText.get('shizuku_not_authorized');
           // 获取详细信息帮助诊断
           _getDetailedStatus();
         }
       });
     } catch (e) {
+      if (!mounted) return;
+
       // 解析异常类型
       String errorType = LocalizedText.get('error_unknown');
       String errorMsg = e.toString();
-      
+
       if (errorMsg.contains('binder') || errorMsg.contains('Binder')) {
         errorType = LocalizedText.get('error_shizuku_communication');
         _errorDetail = LocalizedText.get('error_shizuku_crashed');
@@ -392,17 +402,19 @@ class _HomePageState extends State<HomePage> {
         _errorDetail = LocalizedText.get('error_taskservice_no_response');
       } else {
         errorType = LocalizedText.get('error_unknown');
-        _errorDetail = errorMsg.length > 50 ? errorMsg.substring(0, 50) + '...' : errorMsg;
+        _errorDetail = errorMsg.length > 50 
+            ? errorMsg.substring(0, 50) + '...'
+            : errorMsg;
       }
-      
       setState(() {
         _shizukuRunning = false;
         _hasError = true;
-        _statusMessage = errorType;
+        _shizukuStatus = ShizukuStatus.error;
+        _customErrorTitle = errorType;
       });
     }
   }
-  
+
   Future<void> _getDetailedStatus() async {
     try {
       final info = await platform.invokeMethod('getShizukuInfo');
@@ -413,21 +425,21 @@ class _HomePageState extends State<HomePage> {
       // 获取详细信息失败，保持当前错误信息
     }
   }
-  
+
   // V2.1: 重启应用
   Future<void> _restartApp() async {
     if (_isLoading) return;
-    
+
     setState(() => _isLoading = true);
-    
+
     try {
       // 确保TaskService连接
       await platform.invokeMethod('ensureTaskServiceConnected');
       await Future.delayed(const Duration(milliseconds: 500));
-      
+
       // 检查是否有应用在背屏
       final result = await platform.invokeMethod('returnRearAppAndRestart');
-      
+
       if (result == true) {
         // 成功返回主屏，退出应用
         SystemNavigator.pop();
@@ -440,64 +452,80 @@ class _HomePageState extends State<HomePage> {
       SystemNavigator.pop();
     }
   }
-  
+
   // V2.2: 加载所有设置
   // V2.2: Load all settings
   Future<void> _loadSettings() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       setState(() {
-        _proximitySensorEnabled = prefs.getBool('proximity_sensor_enabled') ?? true;
-        _chargingAnimationEnabled = prefs.getBool('charging_animation_enabled') ?? true;
-        _chargingAlwaysOnEnabled = prefs.getBool('charging_always_on_enabled') ?? false;  // V3.5: 加载充电动画常亮开关状态
+        _proximitySensorEnabled =
+            prefs.getBool('proximity_sensor_enabled') ?? true;
+        _chargingAnimationEnabled =
+            prefs.getBool('charging_animation_enabled') ?? true;
+        _chargingAlwaysOnEnabled =
+            prefs.getBool('charging_always_on_enabled') ??
+            false; // V3.5: 加载充电动画常亮开关状态
         _keepScreenOnEnabled = prefs.getBool('keep_screen_on_enabled') ?? true;
-        _alwaysWakeUpEnabled = prefs.getBool('always_wakeup_enabled') ?? false;  // V3.5: 加载未投放应用时常亮开关状态
-        _notificationDarkMode = prefs.getBool('notification_dark_mode') ?? false;
-        _notificationEnabled = prefs.getBool('notification_service_enabled') ?? false;  // V2.4: 加载背屏通知开关状态
+        _alwaysWakeUpEnabled =
+            prefs.getBool('always_wakeup_enabled') ??
+            false; // V3.5: 加载未投放应用时常亮开关状态
+
+        _notificationEnabled =
+            prefs.getBool('notification_service_enabled') ??
+            false; // V2.4: 加载背屏通知开关状态
+        _notificationMusicEnabled = prefs.getBool('notification_music_service_enabled') ?? false;
       });
-      
+
       // 启动充电服务（如果开关打开）
       if (_chargingAnimationEnabled) {
         _startChargingService();
       }
-      
+
       // 检查通知监听权限（但不覆盖开关状态）
       _checkNotificationPermission();
-      
+
       // V2.4: 如果通知开关开启，启动NotificationService
       if (_notificationEnabled) {
         _startNotificationService();
+      }
+
+      // V3.1.2: NotificationMusicService
+      if (_notificationMusicEnabled){
+        _startNotificationMusicService();
       }
     } catch (e) {
       print(LocalizedText.get('load_settings_failed', [e.toString()]));
     }
   }
-  
+
   // V2.2: 加载接近传感器设置
   // V2.2: Load proximity sensor setting
   Future<void> _loadProximitySensorSetting() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       setState(() {
-        _proximitySensorEnabled = prefs.getBool('proximity_sensor_enabled') ?? true;
+        _proximitySensorEnabled =
+            prefs.getBool('proximity_sensor_enabled') ?? true;
       });
     } catch (e) {
       print(LocalizedText.get('load_proximity_failed', [e.toString()]));
     }
   }
-  
+
   // V2.4: 检查通知监听权限
   Future<void> _checkNotificationPermission() async {
     try {
-      final bool hasPermission = await platform.invokeMethod('checkNotificationListenerPermission');
+      final bool hasPermission = await platform.invokeMethod(
+        'checkNotificationListenerPermission',
+      );
       // 只更新权限状态，不覆盖开关状态
-      // _notificationEnabled 现在由 SharedPreferences 中的开关状态控制
       print(LocalizedText.get('notification_listener_status', [hasPermission.toString()]));
     } catch (e) {
       print(LocalizedText.get('check_notification_permission_failed', [e.toString()]));
     }
   }
-  
+
   // V2.4: 启动通知服务
   Future<void> _startNotificationService() async {
     try {
@@ -507,30 +535,45 @@ class _HomePageState extends State<HomePage> {
       print(LocalizedText.get('notification_service_start_failed', [e.toString()]));
     }
   }
-  
-  // V2.4: Toggle notification service
+
+  // V3.1.2: 启动通知音乐服务
+  Future<void> _startNotificationMusicService() async {
+    try {
+      await platform.invokeMethod('startNotificationMusicService');
+      print(LocalizedText.get('notification_music_service_started'));
+    } catch (e) {
+      print(LocalizedText.get('notification_music_service_start_failed', [e.toString()]));
+    }
+  }
+
+  // V2.4: 切换通知服务
   Future<void> _toggleNotificationService(bool enabled) async {
     if (enabled) {
-      final bool hasPermission = await platform.invokeMethod('checkNotificationListenerPermission');
+      // 先检查权限
+      final bool hasPermission = await platform.invokeMethod(
+        'checkNotificationListenerPermission',
+      );
       if (!hasPermission) {
         await platform.invokeMethod('openNotificationListenerSettings');
         return;
       }
     }
-    
+
     try {
       // 先保存到SharedPreferences
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('notification_service_enabled', enabled);
-      
+
       // 通知Service更新状态
-      await platform.invokeMethod('toggleNotificationService', {'enabled': enabled});
-      
+      await platform.invokeMethod('toggleNotificationService', {
+        'enabled': enabled,
+      });
+
       // 如果开启，启动NotificationService
       if (enabled) {
         await _startNotificationService();
       }
-      
+
       setState(() {
         _notificationEnabled = enabled;
       });
@@ -543,6 +586,38 @@ class _HomePageState extends State<HomePage> {
       });
     }
   }
+
+  // V3.1.3: Toggle notification music service
+  Future<void> _toggleNotificationMusicService(bool enabled) async {
+    if (enabled) {
+      final bool hasPermission = await platform.invokeMethod('checkNotificationListenerPermission');
+      if (!hasPermission) {
+        await platform.invokeMethod('openNotificationListenerSettings');
+        return;
+      }
+    }
+
+    try {
+      // SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('notification_music_service_enabled', enabled);
+      
+      // 通知Service更新状态
+      final resultToggleNotificationMusicService = await platform.invokeMethod('toggleNotificationMusicService', {'enabled': enabled});
+
+      print("[BABZ] resultToggleNotificationMusicService: " + resultToggleNotificationMusicService.toString());
+      
+      setState(() {
+        _notificationMusicEnabled = resultToggleNotificationMusicService;
+      });
+      print(LocalizedText.get('notification_service_toggled', [resultToggleNotificationMusicService ? LocalizedText.get('enabled') : LocalizedText.get('disabled')]));
+    } catch (e) {
+      print(LocalizedText.get('toggle_notification_service_failed', [e.toString()]));
+      setState(() {
+        _notificationMusicEnabled = false;
+      });
+    }
+  }
   
   // V2.4: 打开应用选择页面
   Future<void> _openAppSelectionPage() async {
@@ -552,25 +627,18 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // V2.5: test notification to rear screen
-  Future<void> _openAppTestNotification() async {
-    try {
-      await platform.invokeMethod('generateTestNotification');
-    } catch (e) {
-      print('[BABZ] [_HomePageState] [_openAppTestNotification] Error al enviar notificación: $e');
-    }
-  }
-  
   // V2.2: 切换接近传感器开关
   Future<void> _toggleProximitySensor(bool enabled) async {
     try {
       // 先保存到SharedPreferences
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('proximity_sensor_enabled', enabled);
-      
+
       // 通知Service更新状态
-      await platform.invokeMethod('setProximitySensorEnabled', {'enabled': enabled});
-      
+      await platform.invokeMethod('setProximitySensorEnabled', {
+        'enabled': enabled,
+      });
+
       setState(() {
         _proximitySensorEnabled = enabled;
       });
@@ -583,17 +651,19 @@ class _HomePageState extends State<HomePage> {
       });
     }
   }
-  
+
   // V2.3: 切换充电动画开关
   Future<void> _toggleChargingAnimation(bool enabled) async {
     try {
       // 先保存到SharedPreferences
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('charging_animation_enabled', enabled);
-      
+
       // 启动或停止充电服务
-      await platform.invokeMethod('toggleChargingService', {'enabled': enabled});
-      
+      await platform.invokeMethod('toggleChargingService', {
+        'enabled': enabled,
+      });
+
       setState(() {
         _chargingAnimationEnabled = enabled;
       });
@@ -606,7 +676,7 @@ class _HomePageState extends State<HomePage> {
       });
     }
   }
-  
+
   // V2.3: 启动充电服务
   Future<void> _startChargingService() async {
     try {
@@ -615,25 +685,29 @@ class _HomePageState extends State<HomePage> {
       print(LocalizedText.get('start_charging_service_failed', [e.toString()]));
     }
   }
-  
+
   // V2.5: 切换背屏常亮开关
   Future<void> _toggleKeepScreenOn(bool enabled) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('keep_screen_on_enabled', enabled);
-      
+
       // V3.5: 如果开启，则关闭未投放应用时常亮
       if (enabled && _alwaysWakeUpEnabled) {
         await prefs.setBool('always_wakeup_enabled', false);
-        await platform.invokeMethod('setAlwaysWakeUpEnabled', {'enabled': false});
+        await platform.invokeMethod('setAlwaysWakeUpEnabled', {
+          'enabled': false,
+        });
       }
-      
+
       // 通过Intent通知RearScreenKeeperService
-      await platform.invokeMethod('setKeepScreenOnEnabled', {'enabled': enabled});
-      
+      await platform.invokeMethod('setKeepScreenOnEnabled', {
+        'enabled': enabled,
+      });
+
       setState(() {
         _keepScreenOnEnabled = enabled;
-        if (enabled) _alwaysWakeUpEnabled = false;  // V3.5: Mutually exclusive
+        if (enabled) _alwaysWakeUpEnabled = false; // V3.5: 互斥关闭
       });
       print(LocalizedText.get('keep_screen_on_toggle', [enabled ? LocalizedText.get('enabled') : LocalizedText.get('disabled')]));
     } catch (e) {
@@ -644,25 +718,29 @@ class _HomePageState extends State<HomePage> {
       });
     }
   }
-  
+
   // V3.5: 切换未投放应用时常亮开关
   Future<void> _toggleAlwaysWakeUp(bool enabled) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('always_wakeup_enabled', enabled);
-      
+
       // V3.5: 如果开启，则关闭背屏常亮
       if (enabled && _keepScreenOnEnabled) {
         await prefs.setBool('keep_screen_on_enabled', false);
-        await platform.invokeMethod('setKeepScreenOnEnabled', {'enabled': false});
+        await platform.invokeMethod('setKeepScreenOnEnabled', {
+          'enabled': false,
+        });
       }
-      
+
       // 通过Intent通知AlwaysWakeUpService
-      await platform.invokeMethod('setAlwaysWakeUpEnabled', {'enabled': enabled});
-      
+      await platform.invokeMethod('setAlwaysWakeUpEnabled', {
+        'enabled': enabled,
+      });
+
       setState(() {
         _alwaysWakeUpEnabled = enabled;
-        if (enabled) _keepScreenOnEnabled = false;  // V3.5: Mutually exclusive
+        if (enabled) _keepScreenOnEnabled = false; // V3.5: 互斥关闭
       });
       print(LocalizedText.get('always_wake_up_toggle', [enabled ? LocalizedText.get('enabled') : LocalizedText.get('disabled')]));
     } catch (e) {
@@ -673,16 +751,18 @@ class _HomePageState extends State<HomePage> {
       });
     }
   }
-  
+
   // V3.5: 切换充电动画常亮开关
   Future<void> _toggleChargingAlwaysOn(bool enabled) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('charging_always_on_enabled', enabled);
-      
+
       // 通过Intent通知ChargingAlwaysOnService
-      await platform.invokeMethod('setChargingAlwaysOnEnabled', {'enabled': enabled});
-      
+      await platform.invokeMethod('setChargingAlwaysOnEnabled', {
+        'enabled': enabled,
+      });
+
       setState(() {
         _chargingAlwaysOnEnabled = enabled;
       });
@@ -695,26 +775,17 @@ class _HomePageState extends State<HomePage> {
       });
     }
   }
-  
-  // V3.1: Notification dark mode toggle
-  Future<void> _toggleNotificationDarkMode(bool enabled) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('notification_dark_mode', enabled);
-      
-      // Notify NotificationService via Intent
-      await platform.invokeMethod('setNotificationDarkMode', {'enabled': enabled});
-      
-      setState(() {
-        _notificationDarkMode = enabled;
-      });
-      print(LocalizedText.get('notification_dark_mode_toggle', [enabled ? LocalizedText.get('enabled') : LocalizedText.get('disabled')]));
-    } catch (e) {
-      print(LocalizedText.get('notification_dark_mode_toggle_failed', [e.toString()]));
-      // Restore original state on failure
-      setState(() {
-        _notificationDarkMode = !enabled;
-      });
+
+  String _getDisplayStatus(BuildContext context) {
+    switch (_shizukuStatus) {
+      case ShizukuStatus.checking:
+        return LocalizedText.get('checking_shizuku');
+      case ShizukuStatus.running:
+        return LocalizedText.get('shizuku_ready');
+      case ShizukuStatus.error:
+        return _customErrorTitle.isNotEmpty
+            ? _customErrorTitle
+            : LocalizedText.get('permission_required');
     }
   }
 
@@ -729,7 +800,10 @@ class _HomePageState extends State<HomePage> {
         scrolledUnderElevation: 0,
         surfaceTintColor: Colors.transparent,
         shadowColor: Colors.transparent,
-        title: const Text('MRSS', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          'MRSS',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.restart_alt),
@@ -777,7 +851,7 @@ class _HomePageState extends State<HomePage> {
                                 ),
                                 const SizedBox(width: 10),
                                 Text(
-                                  _shizukuRunning ? LocalizedText.get('shizuku_running') : _statusMessage,
+                                  _getDisplayStatus(context),
                                   style: const TextStyle(
                                     fontSize: 16,
                                     color: Colors.black87,
@@ -804,9 +878,9 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                 ),
-                  
+
                 SizedBox(height: 20),
-                  
+
                 // V15: 背屏DPI调整卡片
                 Stack(
                   children: [
@@ -955,17 +1029,17 @@ class _HomePageState extends State<HomePage> {
                                     ),
                                   ),
                                 ),
-                                
+
                                 const SizedBox(height: 16),
                                 const Divider(color: Colors.black26, height: 1),
                                 const SizedBox(height: 16),
-                                
+
                                 // V2.1: 旋转控制
                                 Row(
                                   children: [
                                     Text(
                                       LocalizedText.get('rotation_label'),
-                                      style: TextStyle(fontSize: 14, color: Colors.black87, fontWeight: FontWeight.w500),
+                                      style: TextStyle(fontSize: 13, color: Colors.black87, fontWeight: FontWeight.w500),
                                     ),
                                     const Spacer(),
                                     _buildRotationButton('0°', 0),
@@ -985,9 +1059,9 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ],
                 ),
-                  
+
                 SizedBox(height: 20),
-                
+
                 // V2.2: 背屏遮盖检测卡片（独立）
                 Stack(
                   children: [
@@ -1025,9 +1099,9 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ],
                 ),
-                  
+
                 SizedBox(height: 20),
-                
+
                 // V2.5: 背屏常亮卡片
                 CustomPaint(
                   painter: _SquircleBorderPainter(
@@ -1105,9 +1179,9 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                 ),
-                  
+
                 SizedBox(height: 20),
-                
+
                 // V2.3: 充电动画卡片（独立）
                 CustomPaint(
                   painter: _SquircleBorderPainter(
@@ -1185,9 +1259,9 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                 ),
-                  
+
                 SizedBox(height: 20),
-                
+
                 // V2.4: 通知功能卡片
                 CustomPaint(
                   painter: _SquircleBorderPainter(
@@ -1237,10 +1311,10 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                 ),
-                  
+
                 SizedBox(height: 20),
 
-                // V2.5: Test Notification Card
+                // V3.1.3 Activate Music Notification service
                 CustomPaint(
                   painter: _SquircleBorderPainter(
                     radius: _SquircleRadii.large,
@@ -1262,25 +1336,15 @@ class _HomePageState extends State<HomePage> {
                             Row(
                               children: [
                                 Text(
-                                  LocalizedText.get('test_notification'),
+                                  LocalizedText.get('rear_screen_music_notifications'),
                                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
                                 ),
                                 const Spacer(),
-                                IconButton(
-                                  icon: const Icon(Icons.comment, size: 24),
-                                  color: Colors.black87,
-                                  onPressed: () async {
-                                    await _openAppTestNotification();
-                                  },
-                                  //tooltip: LocalizedText.get('tooltip_select_apps'),
-                                  padding: EdgeInsets.zero,
-                                  constraints: const BoxConstraints(),
-                                )
-                                // const SizedBox(width: 8),
-                                // _GradientToggle(
-                                //   value: _notificationEnabled,
-                                //   onChanged: _toggleNotificationService,
-                                // ),
+                                const SizedBox(width: 8),
+                                _GradientToggle(
+                                  value: _notificationMusicEnabled,
+                                  onChanged: _toggleNotificationMusicService,
+                                ),
                               ],
                             ),
                           ],
@@ -1289,7 +1353,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                 ),
-                  
+
                 SizedBox(height: 20),
                 
                 // 使用教程 - 可点击跳转到酷安帖子
@@ -1356,9 +1420,9 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                 ),
-                  
+
                 SizedBox(height: 16),
-                
+
                 // 底部作者信息 - 可点击跳转到酷安
                 CustomPaint(
                   painter: _SquircleBorderPainter(
@@ -1508,9 +1572,9 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                 ),
-                  
+
                 SizedBox(height: 16),
-                
+
                 // 打赏和交流群 - 两列布局
                 Row(
                   children: [
@@ -1532,11 +1596,15 @@ class _HomePageState extends State<HomePage> {
                                 onTap: () async {
                                   // 打开打赏页面
                                   try {
-                                    await platform.invokeMethod('openDonationPage');
+                                    await platform.invokeMethod(
+                                      'openDonationPage',
+                                    );
                                   } catch (e) {
                                     print(LocalizedText.get('open_donation_failed', [e.toString()]));
                                     if (context.mounted) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
                                         SnackBar(content: Text(LocalizedText.get('open_failed'))),
                                       );
                                     }
@@ -1575,9 +1643,9 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                     ),
-                    
+
                     SizedBox(width: 16),
-                    
+
                     // MRSS交流群
                     Expanded(
                       child: CustomPaint(
@@ -1641,7 +1709,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ],
                 ),
-                  
+
                 const SizedBox(height: 20),
               ],
             ),
@@ -1650,11 +1718,11 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-  
+
   // V2.1: 构建旋转按钮（精确超椭圆，统一12px圆角）
   Widget _buildRotationButton(String label, int rotation) {
     bool isSelected = _currentRotation == rotation;
-    
+
     return SizedBox(
       width: 50,
       height: 32,
@@ -1685,7 +1753,7 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-  
+
   // V2.1: 获取当前旋转方向
   Future<void> _getCurrentRotation() async {
     try {
@@ -1699,11 +1767,11 @@ class _HomePageState extends State<HomePage> {
       print(LocalizedText.get('get_rotation_failed', [e.toString()]));
     }
   }
-  
+
   // V2.1: 设置旋转方向
   Future<void> _setRotation(int rotation) async {
     print(LocalizedText.get('flutter_rotation_start', [rotation, rotation * 90]));
-    
+
     if (!_shizukuRunning) {
       print(LocalizedText.get('flutter_shizuku_not_running'));
       return;
@@ -1712,23 +1780,25 @@ class _HomePageState extends State<HomePage> {
       print(LocalizedText.get('flutter_loading_skip'));
       return;
     }
-    
+
     setState(() => _isLoading = true);
-    
+
     try {
       // 确保TaskService连接
       print(LocalizedText.get('flutter_ensure_taskservice'));
-      final connected = await platform.invokeMethod('ensureTaskServiceConnected');
+      final connected = await platform.invokeMethod(
+        'ensureTaskServiceConnected',
+      );
       print(LocalizedText.get('flutter_taskservice_connected_status', [connected.toString()]));
       await Future.delayed(const Duration(milliseconds: 500));
-      
+
       print(LocalizedText.get('flutter_call_set_rotation', [rotation]));
       final result = await platform.invokeMethod('setDisplayRotation', {
         'displayId': 1,
         'rotation': rotation,
       });
       print(LocalizedText.get('flutter_setrotation_returned', [result.toString()]));
-      
+
       if (result == true) {
         setState(() => _currentRotation = rotation);
         print(LocalizedText.get('flutter_rotation_success', [rotation * 90]));
@@ -1940,7 +2010,7 @@ class _GradientCheckboxState extends State<_GradientCheckbox> {
         scale: _pressed ? 0.9 : 1.0,
         child: ClipPath(
           clipper: _SquircleClipper(cornerRadius: _SquircleRadii.checkbox),
-          child: Container(
+          child: SizedBox(
             width: 24,
             height: 24,
             child: Stack(
@@ -1994,9 +2064,9 @@ class _GradientCheckboxState extends State<_GradientCheckbox> {
 /// 使用固定值确保视觉一致性（基于标准DPI 420计算）
 class _SquircleRadii {
   // 16.4mm @ 420dpi ≈ 27dp，实际屏幕略大，取32dp
-  static const double large = 32.0;  // 大卡片圆角
-  static const double small = 12.0;  // 小组件圆角 (large * 0.375)
-  static const double tiny = 16.0;   // 开关圆角
+  static const double large = 32.0; // 大卡片圆角
+  static const double small = 12.0; // 小组件圆角 (large * 0.375)
+  static const double tiny = 16.0; // 开关圆角
   static const double checkbox = 6.0; // 复选框圆角
 }
 
@@ -2005,35 +2075,35 @@ class _SquircleRadii {
 class _SquircleShapeBorder extends ShapeBorder {
   final double cornerRadius;
   static const double n = 2.84; // 超椭圆指数
-  
+
   const _SquircleShapeBorder({required this.cornerRadius});
-  
+
   @override
   EdgeInsetsGeometry get dimensions => EdgeInsets.zero;
-  
+
   @override
   Path getInnerPath(Rect rect, {TextDirection? textDirection}) {
     return _createSquirclePath(rect.size, cornerRadius);
   }
-  
+
   @override
   Path getOuterPath(Rect rect, {TextDirection? textDirection}) {
     return _createSquirclePath(rect.size, cornerRadius);
   }
-  
+
   @override
   void paint(Canvas canvas, Rect rect, {TextDirection? textDirection}) {}
-  
+
   @override
   ShapeBorder scale(double t) => _SquircleShapeBorder(cornerRadius: cornerRadius * t);
-  
+
   static Path _createSquirclePath(Size size, double radius) {
     final double width = size.width;
     final double height = size.height;
     final double effectiveRadius = radius.clamp(0.0, math.min(width, height) / 2);
-    
+
     final path = Path();
-    
+
     // 顶部左侧圆角
     path.moveTo(0, effectiveRadius);
     for (double t = 0; t <= 1.0; t += 0.02) {
@@ -2042,10 +2112,10 @@ class _SquircleShapeBorder extends ShapeBorder {
       final y = effectiveRadius * (1 - math.pow(math.sin(angle).abs(), 2 / n) * (math.sin(angle) >= 0 ? 1 : -1));
       path.lineTo(x, y);
     }
-    
+
     // 顶边
     path.lineTo(width - effectiveRadius, 0);
-    
+
     // 顶部右侧圆角
     for (double t = 0; t <= 1.0; t += 0.02) {
       final angle = t * math.pi / 2;
@@ -2053,10 +2123,10 @@ class _SquircleShapeBorder extends ShapeBorder {
       final y = effectiveRadius * (1 - math.pow(math.sin(angle).abs(), 2 / n) * (math.sin(angle) >= 0 ? 1 : -1));
       path.lineTo(x, y);
     }
-    
+
     // 右边
     path.lineTo(width, height - effectiveRadius);
-    
+
     // 底部右侧圆角
     for (double t = 0; t <= 1.0; t += 0.02) {
       final angle = (1 - t) * math.pi / 2 + math.pi / 2;
@@ -2064,10 +2134,10 @@ class _SquircleShapeBorder extends ShapeBorder {
       final y = height - effectiveRadius * (1 - math.pow(math.sin(angle).abs(), 2 / n) * (math.sin(angle) >= 0 ? 1 : -1));
       path.lineTo(x, y);
     }
-    
+
     // 底边
     path.lineTo(effectiveRadius, height);
-    
+
     // 底部左侧圆角
     for (double t = 0; t <= 1.0; t += 0.02) {
       final angle = t * math.pi / 2 + math.pi;
@@ -2075,7 +2145,7 @@ class _SquircleShapeBorder extends ShapeBorder {
       final y = height - effectiveRadius * (1 - math.pow(math.sin(angle).abs(), 2 / n) * (math.sin(angle) >= 0 ? 1 : -1));
       path.lineTo(x, y);
     }
-    
+
     path.close();
     return path;
   }
@@ -2086,69 +2156,69 @@ class _SquircleShapeBorder extends ShapeBorder {
 class _SquircleClipper extends CustomClipper<Path> {
   final double cornerRadius;
   static const double n = 2.84; // 超椭圆指数
-  
+
   _SquircleClipper({required this.cornerRadius});
-  
+
   @override
   Path getClip(Size size) {
     return _createSquirclePath(size, cornerRadius);
   }
-  
+
   Path _createSquirclePath(Size size, double radius) {
     final w = size.width;
     final h = size.height;
     final r = radius;
-    
+
     final path = Path();
-    
+
     // 从左上角开始，顺时针绘制
     path.moveTo(0, r);
-    
+
     // 左上角超椭圆
     _drawSquircleArc(path, r, r, r, math.pi, math.pi * 1.5);
-    
+
     // 上边
     path.lineTo(w - r, 0);
-    
+
     // 右上角超椭圆
     _drawSquircleArc(path, w - r, r, r, math.pi * 1.5, math.pi * 2);
-    
+
     // 右边
     path.lineTo(w, h - r);
-    
+
     // 右下角超椭圆
     _drawSquircleArc(path, w - r, h - r, r, 0, math.pi * 0.5);
-    
+
     // 下边
     path.lineTo(r, h);
-    
+
     // 左下角超椭圆
     _drawSquircleArc(path, r, h - r, r, math.pi * 0.5, math.pi);
-    
+
     path.close();
     return path;
   }
-  
+
   void _drawSquircleArc(Path path, double cx, double cy, double radius, double startAngle, double endAngle) {
     const int segments = 30;
-    
+
     for (int i = 0; i <= segments; i++) {
       final t = i / segments;
       final angle = startAngle + (endAngle - startAngle) * t;
-      
+
       final cosA = math.cos(angle);
       final sinA = math.sin(angle);
-      
+
       // 超椭圆公式: r * sgn(t) * |t|^(2/n)
       final x = cx + radius * _sgn(cosA) * math.pow(cosA.abs(), 2.0 / n);
       final y = cy + radius * _sgn(sinA) * math.pow(sinA.abs(), 2.0 / n);
-      
+
       path.lineTo(x, y);
     }
   }
-  
+
   double _sgn(double x) => x < 0 ? -1.0 : 1.0;
-  
+
   @override
   bool shouldReclip(_SquircleClipper oldClipper) => oldClipper.cornerRadius != cornerRadius;
 }
@@ -2160,50 +2230,50 @@ class _SquircleBorderPainter extends CustomPainter {
   final Color color;
   final double strokeWidth;
   static const double n = 2.84; // 超椭圆指数
-  
+
   _SquircleBorderPainter({
     required this.radius,
     required this.color,
     required this.strokeWidth,
   });
-  
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth;
-    
+
     final path = _createSquirclePath(size, radius);
     canvas.drawPath(path, paint);
   }
-  
+
   Path _createSquirclePath(Size size, double r) {
     final w = size.width;
     final h = size.height;
-    
+
     final path = Path();
     path.moveTo(0, r);
-    
+
     // 左上角
     _drawSquircleArc(path, r, r, r, math.pi, math.pi * 1.5);
     path.lineTo(w - r, 0);
-    
+
     // 右上角
     _drawSquircleArc(path, w - r, r, r, math.pi * 1.5, math.pi * 2);
     path.lineTo(w, h - r);
-    
+
     // 右下角
     _drawSquircleArc(path, w - r, h - r, r, 0, math.pi * 0.5);
     path.lineTo(r, h);
-    
+
     // 左下角
     _drawSquircleArc(path, r, h - r, r, math.pi * 0.5, math.pi);
-    
+
     path.close();
     return path;
   }
-  
+
   void _drawSquircleArc(Path path, double cx, double cy, double radius, double startAngle, double endAngle) {
     const int segments = 30;
     for (int i = 0; i <= segments; i++) {
@@ -2216,47 +2286,40 @@ class _SquircleBorderPainter extends CustomPainter {
       path.lineTo(x, y);
     }
   }
-  
+
   double _sgn(double x) => x < 0 ? -1.0 : 1.0;
-  
+
   @override
   bool shouldRepaint(_SquircleBorderPainter oldDelegate) {
     return oldDelegate.radius != radius ||
-           oldDelegate.color != color ||
-           oldDelegate.strokeWidth != strokeWidth;
+        oldDelegate.color != color ||
+        oldDelegate.strokeWidth != strokeWidth;
   }
 }
 
 /// V2.4: 应用选择页面
 class AppSelectionPage extends StatefulWidget {
-  const AppSelectionPage({Key? key}) : super(key: key);
-  
+  const AppSelectionPage({super.key});
+
   @override
   State<AppSelectionPage> createState() => _AppSelectionPageState();
 }
 
 class _AppSelectionPageState extends State<AppSelectionPage> {
-  static const platform = MethodChannel('com.display.switcher/task');  // ✅ 修正channel名称
-  
+  static const platform = MethodChannel('com.display.switcher/task'); // ✅ 修正channel名称
+
   List<Map<String, dynamic>> _apps = [];
   List<Map<String, dynamic>> _visibleApps = [];
   Set<String> _selectedApps = {};
   bool _isLoading = true;
-  bool _privacyMode = false; // 隐私模式
-  bool _followDndMode = true; // 跟随系统勿扰模式（默认开启）
-  bool _onlyWhenLocked = false; // 仅在锁屏时通知（默认关闭）
-  bool _notificationDarkMode = false; // 通知暗夜模式（默认关闭）
+
   bool _includeSystemApps = false; // 是否显示系统应用
   final TextEditingController _searchController = TextEditingController();
-  
+
   @override
   void initState() {
     super.initState();
     _loadApps();
-    _loadPrivacyMode();
-    _loadFollowDndMode();
-    _loadOnlyWhenLockedMode();
-    _loadNotificationDarkMode();
   }
 
   @override
@@ -2264,30 +2327,33 @@ class _AppSelectionPageState extends State<AppSelectionPage> {
     _searchController.dispose();
     super.dispose();
   }
-  
+
   // 启动权限检查循环（后台异步）
   void _startPermissionCheckLoop() async {
     print(LocalizedText.get('permission_check_loop_start'));
     int checkAttempts = 0;
-    
-    while (checkAttempts < 30 && mounted) { // 最多检查30次（30秒）
+
+    while (checkAttempts < 30 && mounted) {
+      // 最多检查30次（30秒）
       await Future.delayed(const Duration(seconds: 1));
-      
+
       if (!mounted) break; // 页面已销毁，退出循环
-      
+
       try {
-        final bool granted = await platform.invokeMethod('checkQueryAllPackagesPermission');
+        final bool granted = await platform.invokeMethod(
+          'checkQueryAllPackagesPermission',
+        );
         if (granted) {
           print(LocalizedText.get('permission_granted_auto_refresh'));
-          
+
           // 权限已授予，刷新列表
           if (mounted) {
             setState(() {
               _isLoading = true;
             });
-            
+
             await _loadAppsInternal();
-            
+
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(LocalizedText.get('permission_granted_apps_refreshed'))),
             );
@@ -2297,36 +2363,44 @@ class _AppSelectionPageState extends State<AppSelectionPage> {
       } catch (e) {
         print(LocalizedText.get('permission_check_failed', [e.toString()]));
       }
-      
+
       checkAttempts++;
     }
-    
+
     print(LocalizedText.get('permission_check_timeout'));
-    
+
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(LocalizedText.get('please_grant_permission_then_refresh'))),
+        SnackBar(
+          content: Text(
+            LocalizedText.get('please_grant_permission_then_refresh'),
+          ),
+        ),
       );
     }
   }
-  
+
   // 内部加载方法（不检查权限，直接加载）
   Future<void> _loadAppsInternal() async {
     try {
       // 加载已选择的应用
-      final List<dynamic> selectedApps = await platform.invokeMethod('getSelectedNotificationApps');
+      final List<dynamic> selectedApps = await platform.invokeMethod(
+        'getSelectedNotificationApps',
+      );
       _selectedApps = selectedApps.cast<String>().toSet();
-      
+
       // 加载所有应用
-      final List<dynamic> apps = await platform.invokeMethod('getInstalledApps');
-      
+      final List<dynamic> apps = await platform.invokeMethod(
+        'getInstalledApps',
+      );
+
       setState(() {
         _apps = apps.map((app) => Map<String, dynamic>.from(app)).toList();
         _isLoading = false;
       });
-      
+
       _applyFilters();
-      
+
       print(LocalizedText.get('apps_loaded_count', [_apps.length]));
     } catch (e) {
       print(LocalizedText.get('load_apps_failed', [e.toString()]));
@@ -2341,30 +2415,31 @@ class _AppSelectionPageState extends State<AppSelectionPage> {
     List<Map<String, dynamic>> filtered = _apps.where((app) {
       final String name = (app['appName'] ?? '').toString().toLowerCase();
       final String pkg = (app['packageName'] ?? '').toString().toLowerCase();
-      final bool matchesQuery = q.isEmpty || name.contains(q) || pkg.contains(q);
+      final bool matchesQuery =
+          q.isEmpty || name.contains(q) || pkg.contains(q);
       if (!_includeSystemApps && _isSystemApp(app)) {
         return false;
       }
       return matchesQuery;
     }).toList();
-    
+
     // 排序：选中的应用置顶，然后按应用名排序
     filtered.sort((a, b) {
       final String pkgA = a['packageName'] ?? '';
       final String pkgB = b['packageName'] ?? '';
       final bool selectedA = _selectedApps.contains(pkgA);
       final bool selectedB = _selectedApps.contains(pkgB);
-      
+
       // 如果一个是选中的，一个是未选中的，选中的排在前面
       if (selectedA && !selectedB) return -1;
       if (!selectedA && selectedB) return 1;
-      
+
       // 如果都是选中或都是未选中，按应用名排序
       final String nameA = (a['appName'] ?? '').toString().toLowerCase();
       final String nameB = (b['appName'] ?? '').toString().toLowerCase();
       return nameA.compareTo(nameB);
     });
-    
+
     setState(() {
       _visibleApps = filtered;
     });
@@ -2375,7 +2450,9 @@ class _AppSelectionPageState extends State<AppSelectionPage> {
     final dynamic flag1 = app['isSystem'];
     final dynamic flag2 = app['isSystemApp'];
     if (flag1 == true || flag2 == true) return true;
-    return pkg.startsWith('com.android.') || pkg.startsWith('com.google.android.') || pkg.startsWith('android');
+    return pkg.startsWith('com.android.') ||
+        pkg.startsWith('com.google.android.') ||
+        pkg.startsWith('android');
   }
 
   Future<void> _selectAllVisible() async {
@@ -2388,7 +2465,10 @@ class _AppSelectionPageState extends State<AppSelectionPage> {
     // 重新应用过滤器以更新排序
     _applyFilters();
     try {
-      await platform.invokeMethod('setSelectedNotificationApps', _selectedApps.toList());
+      await platform.invokeMethod(
+        'setSelectedNotificationApps',
+        _selectedApps.toList(),
+      );
     } catch (e) {
       print(LocalizedText.get('bulk_select_save_failed', [e.toString()]));
     }
@@ -2404,128 +2484,31 @@ class _AppSelectionPageState extends State<AppSelectionPage> {
     // 重新应用过滤器以更新排序
     _applyFilters();
     try {
-      await platform.invokeMethod('setSelectedNotificationApps', _selectedApps.toList());
+      await platform.invokeMethod(
+        'setSelectedNotificationApps',
+        _selectedApps.toList(),
+      );
     } catch (e) {
       print(LocalizedText.get('bulk_deselect_save_failed', [e.toString()]));
     }
   }
-  
-  Future<void> _loadPrivacyMode() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      setState(() {
-        _privacyMode = prefs.getBool('notification_privacy_mode') ?? false;
-      });
-    } catch (e) {
-      print(LocalizedText.get('load_privacy_mode_failed', [e.toString()]));
-    }
-  }
-  
-  Future<void> _togglePrivacyMode(bool enabled) async {
-    try {
-      await platform.invokeMethod('setNotificationPrivacyMode', {'enabled': enabled});
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('notification_privacy_mode', enabled);
-      setState(() {
-        _privacyMode = enabled;
-      });
-    } catch (e) {
-      print(LocalizedText.get('toggle_privacy_mode_failed', [e.toString()]));
-    }
-  }
-  
-  Future<void> _loadFollowDndMode() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      setState(() {
-        _followDndMode = prefs.getBool('notification_follow_dnd_mode') ?? true;
-      });
-    } catch (e) {
-      print(LocalizedText.get('load_follow_dnd_failed', [e.toString()]));
-    }
-  }
-  
-  Future<void> _toggleFollowDndMode(bool enabled) async {
-    try {
-      await platform.invokeMethod('setFollowDndMode', {'enabled': enabled});
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('notification_follow_dnd_mode', enabled);
-      setState(() {
-        _followDndMode = enabled;
-      });
-    } catch (e) {
-      print(LocalizedText.get('toggle_follow_dnd_failed', [e.toString()]));
-    }
-  }
-  
-  Future<void> _loadOnlyWhenLockedMode() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      setState(() {
-        _onlyWhenLocked = prefs.getBool('notification_only_when_locked') ?? false;
-      });
-    } catch (e) {
-      print(LocalizedText.get('load_only_when_locked_failed', [e.toString()]));
-    }
-  }
-  
-  Future<void> _loadNotificationDarkMode() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      setState(() {
-        _notificationDarkMode = prefs.getBool('notification_dark_mode') ?? false;
-      });
-    } catch (e) {
-      print(LocalizedText.get('load_notification_dark_mode_failed', [e.toString()]));
-    }
-  }
-  
-  Future<void> _toggleNotificationDarkMode(bool enabled) async {
-    try {
-      await platform.invokeMethod('setNotificationDarkMode', {'enabled': enabled});
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('notification_dark_mode', enabled);
-      
-      setState(() {
-        _notificationDarkMode = enabled;
-      });
-      print(LocalizedText.get('notification_dark_mode_toggled', [enabled ? LocalizedText.get('enabled') : LocalizedText.get('disabled')]));
-    } catch (e) {
-      print(LocalizedText.get('toggle_notification_dark_mode_failed', [e.toString()]));
-      // 切换失败，恢复原状态
-      setState(() {
-        _notificationDarkMode = !enabled;
-      });
-    }
-  }
-  
-  Future<void> _toggleOnlyWhenLocked(bool enabled) async {
-    try {
-      await platform.invokeMethod('setOnlyWhenLocked', {'enabled': enabled});
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('notification_only_when_locked', enabled);
-      setState(() {
-        _onlyWhenLocked = enabled;
-      });
-    } catch (e) {
-      print(LocalizedText.get('toggle_only_when_locked_failed', [e.toString()]));
-    }
-  }
-  
+
   Future<void> _loadApps() async {
     setState(() => _isLoading = true);
-    
+
     try {
       // ✅ 主动检查QUERY_ALL_PACKAGES权限
       print(LocalizedText.get('start_check_query_perm'));
-      final bool hasPermission = await platform.invokeMethod('checkQueryAllPackagesPermission');
+      final bool hasPermission = await platform.invokeMethod(
+        'checkQueryAllPackagesPermission',
+      );
       print(LocalizedText.get('permission_check_result', [hasPermission.toString()]));
-      
+
       if (!hasPermission) {
         print(LocalizedText.get('no_query_all_packages_permission'));
         // 没有权限，弹窗提示并跳转到设置
         setState(() => _isLoading = false);
-        
+
         if (mounted) {
           final shouldOpenSettings = await showDialog<bool>(
             context: context,
@@ -2544,17 +2527,17 @@ class _AppSelectionPageState extends State<AppSelectionPage> {
               ],
             ),
           );
-          
+
           if (shouldOpenSettings == true) {
             await platform.invokeMethod('requestQueryAllPackagesPermission');
-            
+
             // 启动后台检查任务（不阻塞UI）
             _startPermissionCheckLoop();
           }
         }
         return;
       }
-      
+
       // ✅ 有权限，继续加载
       await _loadAppsInternal();
     } catch (e) {
@@ -2562,7 +2545,7 @@ class _AppSelectionPageState extends State<AppSelectionPage> {
       setState(() => _isLoading = false);
     }
   }
-  
+
   Future<void> _toggleApp(String packageName, bool selected) async {
     setState(() {
       if (selected) {
@@ -2571,18 +2554,21 @@ class _AppSelectionPageState extends State<AppSelectionPage> {
         _selectedApps.remove(packageName);
       }
     });
-    
+
     // 重新应用过滤器以更新排序（选中的应用置顶）
     _applyFilters();
-    
+
     // 保存到后台
     try {
-      await platform.invokeMethod('setSelectedNotificationApps', _selectedApps.toList());
+      await platform.invokeMethod(
+        'setSelectedNotificationApps',
+        _selectedApps.toList(),
+      );
     } catch (e) {
       print(LocalizedText.get('save_selection_failed', [e.toString()]));
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -2616,141 +2602,140 @@ class _AppSelectionPageState extends State<AppSelectionPage> {
         ),
         child: SafeArea(
           child: _isLoading
-              ? Center(child: CircularProgressIndicator(color: Colors.white))
-              : Padding(
-                  padding: EdgeInsets.all(20),
-                  child: Column(
-                    children: [
-                      
-                      // 筛选与批量操作卡片
-                      CustomPaint(
-                        painter: _SquircleBorderPainter(
-                          radius: 32,
-                          color: Colors.white.withOpacity(0.5),
-                          strokeWidth: 1.5,
+          ? Center(child: CircularProgressIndicator(color: Colors.white))
+          : Padding(
+            padding: EdgeInsets.all(20),
+            child: Column(
+              children: [
+                // 筛选与批量操作卡片
+                CustomPaint(
+                  painter: _SquircleBorderPainter(
+                    radius: 32,
+                    color: Colors.white.withOpacity(0.5),
+                    strokeWidth: 1.5,
+                  ),
+                  child: ClipPath(
+                    clipper: _SquircleClipper(cornerRadius: _SquircleRadii.large),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 0, sigmaY: 0),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.25),
                         ),
-                        child: ClipPath(
-                          clipper: _SquircleClipper(cornerRadius: _SquircleRadii.large),
-                          child: BackdropFilter(
-                            filter: ImageFilter.blur(sigmaX: 0, sigmaY: 0),
-                            child: Container(
-                              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.25),
+                        child: Column(
+                          children: [
+                            TextField(
+                              controller: _searchController,
+                              onChanged: (_) => _applyFilters(),
+                              style: TextStyle(color: Colors.black87),
+                              decoration: InputDecoration(
+                                hintText: LocalizedText.get('search_apps_hint'),
+                                hintStyle: TextStyle(color: Colors.black45),
+                                prefixIcon: Icon(Icons.search, color: Colors.black54),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.all(Radius.circular(_SquircleRadii.small)),
+                                  borderSide: BorderSide(color: Colors.black26),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.all(Radius.circular(_SquircleRadii.small)),
+                                  borderSide: BorderSide(color: Colors.black26),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.all(Radius.circular(_SquircleRadii.small)),
+                                  borderSide: BorderSide(color: Colors.black54, width: 2),
+                                ),
                               ),
-                              child: Column(
-                                children: [
-                                  TextField(
-                                    controller: _searchController,
-                                    onChanged: (_) => _applyFilters(),
-                                    style: TextStyle(color: Colors.black87),
-                                    decoration: InputDecoration(
-                                      hintText: LocalizedText.get('search_apps_hint'),
-                                      hintStyle: TextStyle(color: Colors.black45),
-                                      prefixIcon: Icon(Icons.search, color: Colors.black54),
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.all(Radius.circular(_SquircleRadii.small)),
-                                        borderSide: BorderSide(color: Colors.black26),
-                                      ),
-                                      enabledBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.all(Radius.circular(_SquircleRadii.small)),
-                                        borderSide: BorderSide(color: Colors.black26),
-                                      ),
-                                      focusedBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.all(Radius.circular(_SquircleRadii.small)),
-                                        borderSide: BorderSide(color: Colors.black54, width: 2),
+                            ),
+                            const SizedBox(height: 10),
+                            Row(
+                              children: [
+                                // 全选/全不选
+                                ClipPath(
+                                    clipper: _SquircleClipper(cornerRadius: _SquircleRadii.small),
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      gradient: kMainGradient,
+                                    ),
+                                    child: Material(
+                                      color: kTransparent,
+                                      child: InkWell(
+                                        onTap: _selectAllVisible,
+                                        child: Padding(
+                                          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                          child: Text(LocalizedText.get('select_all'), style: TextStyle(color: Colors.white)),
+                                        ),
                                       ),
                                     ),
                                   ),
-                                  const SizedBox(height: 10),
-                                  Row(
-                                    children: [
-                                      // 全选/全不选
-                                      ClipPath(
-                                         clipper: _SquircleClipper(cornerRadius: _SquircleRadii.small),
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                            gradient: kMainGradient,
-                                          ),
-                                          child: Material(
-                                            color: kTransparent,
-                                            child: InkWell(
-                                              onTap: _selectAllVisible,
-                                              child: Padding(
-                                                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                                child: Text(LocalizedText.get('select_all'), style: TextStyle(color: Colors.white)),
-                                              ),
-                                            ),
-                                          ),
+                                ),
+                                const SizedBox(width: 8),
+                                ClipPath(
+                                    clipper: _SquircleClipper(cornerRadius: _SquircleRadii.small),
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      gradient: kMainGradient,
+                                    ),
+                                    child: Material(
+                                      color: Colors.transparent,
+                                      child: InkWell(
+                                        onTap: _deselectAllVisible,
+                                        child: Padding(
+                                          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                          child: Text(LocalizedText.get('select_none'), style: TextStyle(color: Colors.white)),
                                         ),
                                       ),
-                                      const SizedBox(width: 8),
-                                      ClipPath(
-                                         clipper: _SquircleClipper(cornerRadius: _SquircleRadii.small),
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                            gradient: kMainGradient,
-                                          ),
-                                          child: Material(
-                                            color: Colors.transparent,
-                                            child: InkWell(
-                                              onTap: _deselectAllVisible,
-                                              child: Padding(
-                                                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                                child: Text(LocalizedText.get('select_none'), style: TextStyle(color: Colors.white)),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      const Spacer(),
-                                      Text(LocalizedText.get('show_system_apps'), style: TextStyle(color: Colors.black87, fontSize: 12)),
-                                      const SizedBox(width: 6),
-                                      _GradientToggle(
-                                        value: _includeSystemApps,
-                                        onChanged: (v) {
-                                          setState(() => _includeSystemApps = v);
-                                          _applyFilters();
-                                        },
-                                      ),
-                                    ],
+                                    ),
                                   ),
-                                ],
-                              ),
+                                ),
+                                const Spacer(),
+                                Text(LocalizedText.get('show_system_apps'), style: TextStyle(color: Colors.black87, fontSize: 12)),
+                                const SizedBox(width: 6),
+                                _GradientToggle(
+                                  value: _includeSystemApps,
+                                  onChanged: (v) {
+                                    setState(() => _includeSystemApps = v);
+                                    _applyFilters();
+                                  },
+                                ),
+                              ],
                             ),
-                          ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 20),
-                      // 应用列表
-                      Expanded(
-                        child: ListView.builder(
-                          itemCount: _visibleApps.length,
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          itemExtent: 72,
-                          cacheExtent: 500,
-                          addAutomaticKeepAlives: false,
-                          addRepaintBoundaries: true,
-                          physics: const ClampingScrollPhysics(),
-                          itemBuilder: (context, index) {
-                            final app = _visibleApps[index];
-                            final String appName = app['appName'];
-                            final String packageName = app['packageName'];
-                            final Uint8List? iconBytes = app['icon'];
-                            final bool isSelected = _selectedApps.contains(packageName);
-                            return _AppListItem(
-                              appName: appName,
-                              packageName: packageName,
-                              iconBytes: iconBytes,
-                              isSelected: isSelected,
-                              onToggle: () => _toggleApp(packageName, !isSelected),
-                            );
-                          },
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
+                const SizedBox(height: 20),
+                // 应用列表
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: _visibleApps.length,
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    itemExtent: 72,
+                    cacheExtent: 500,
+                    addAutomaticKeepAlives: false,
+                    addRepaintBoundaries: true,
+                    physics: const ClampingScrollPhysics(),
+                    itemBuilder: (context, index) {
+                      final app = _visibleApps[index];
+                      final String appName = app['appName'];
+                      final String packageName = app['packageName'];
+                      final Uint8List? iconBytes = app['icon'];
+                      final bool isSelected = _selectedApps.contains(packageName);
+                      return _AppListItem(
+                        appName: appName,
+                        packageName: packageName,
+                        iconBytes: iconBytes,
+                        isSelected: isSelected,
+                        onToggle: () => _toggleApp(packageName, !isSelected),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -2759,15 +2744,16 @@ class _AppSelectionPageState extends State<AppSelectionPage> {
 
 /// V3.4: 通知设置页面
 class NotificationSettingsPage extends StatefulWidget {
-  const NotificationSettingsPage({Key? key}) : super(key: key);
-  
+  const NotificationSettingsPage({super.key});
+
   @override
-  State<NotificationSettingsPage> createState() => _NotificationSettingsPageState();
+  State<NotificationSettingsPage> createState() =>
+      _NotificationSettingsPageState();
 }
 
 class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
   static const platform = MethodChannel('com.display.switcher/task');
-  
+
   bool _privacyHideTitle = false;
   bool _privacyHideContent = false;
   bool _followDndMode = true;
@@ -2776,20 +2762,20 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
   int _notificationDuration = 10;
   final TextEditingController _durationController = TextEditingController();
   final FocusNode _durationFocusNode = FocusNode();
-  
+
   @override
   void initState() {
     super.initState();
     _loadAllSettings();
   }
-  
+
   @override
   void dispose() {
     _durationController.dispose();
     _durationFocusNode.dispose();
     super.dispose();
   }
-  
+
   Future<void> _loadAllSettings() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -2806,10 +2792,12 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
       print(LocalizedText.get('load_notification_settings_failed', [e.toString()]));
     }
   }
-  
+
   Future<void> _togglePrivacyHideTitle(bool enabled) async {
     try {
-      await platform.invokeMethod('setNotificationPrivacyHideTitle', {'enabled': enabled});
+      await platform.invokeMethod('setNotificationPrivacyHideTitle', {
+        'enabled': enabled,
+      });
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('notification_privacy_hide_title', enabled);
       setState(() {
@@ -2819,10 +2807,12 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
       print(LocalizedText.get('toggle_privacy_hide_title_failed', [e.toString()]));
     }
   }
-  
+
   Future<void> _togglePrivacyHideContent(bool enabled) async {
     try {
-      await platform.invokeMethod('setNotificationPrivacyHideContent', {'enabled': enabled});
+      await platform.invokeMethod('setNotificationPrivacyHideContent', {
+        'enabled': enabled,
+      });
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('notification_privacy_hide_content', enabled);
       setState(() {
@@ -2832,7 +2822,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
       print(LocalizedText.get('toggle_privacy_hide_content_failed', [e.toString()]));
     }
   }
-  
+
   Future<void> _toggleFollowDndMode(bool enabled) async {
     try {
       await platform.invokeMethod('setFollowDndMode', {'enabled': enabled});
@@ -2845,7 +2835,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
       print(LocalizedText.get('toggle_follow_dnd_failed', [e.toString()]));
     }
   }
-  
+
   Future<void> _toggleOnlyWhenLocked(bool enabled) async {
     try {
       await platform.invokeMethod('setOnlyWhenLocked', {'enabled': enabled});
@@ -2858,10 +2848,12 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
       print(LocalizedText.get('toggle_only_when_locked_failed', [e.toString()]));
     }
   }
-  
+
   Future<void> _toggleNotificationDarkMode(bool enabled) async {
     try {
-      await platform.invokeMethod('setNotificationDarkMode', {'enabled': enabled});
+      await platform.invokeMethod('setNotificationDarkMode', {
+        'enabled': enabled,
+      });
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('notification_dark_mode', enabled);
       setState(() {
@@ -2871,10 +2863,12 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
       print(LocalizedText.get('toggle_notification_dark_mode_failed', [e.toString()]));
     }
   }
-  
+
   Future<void> _setNotificationDuration(int seconds) async {
     try {
-      await platform.invokeMethod('setNotificationDuration', {'duration': seconds});
+      await platform.invokeMethod('setNotificationDuration', {
+        'duration': seconds,
+      });
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt('notification_duration', seconds);
       setState(() {
@@ -2889,7 +2883,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
       print(LocalizedText.get('set_notification_duration_failed', [e.toString()]));
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -2970,9 +2964,9 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                   ),
                 ),
               ),
-              
+
               SizedBox(height: 20),
-              
+
               // 跟随系统勿扰模式
               CustomPaint(
                 painter: _SquircleBorderPainter(
@@ -3008,9 +3002,9 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                   ),
                 ),
               ),
-              
+
               SizedBox(height: 20),
-              
+
               // 仅在锁屏时通知
               CustomPaint(
                 painter: _SquircleBorderPainter(
@@ -3046,9 +3040,9 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                   ),
                 ),
               ),
-              
+
               SizedBox(height: 20),
-              
+
               // 通知暗夜模式
               CustomPaint(
                 painter: _SquircleBorderPainter(
@@ -3084,9 +3078,9 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                   ),
                 ),
               ),
-              
+
               SizedBox(height: 20),
-              
+
               // 自动销毁时间
               CustomPaint(
                 painter: _SquircleBorderPainter(
@@ -3188,4 +3182,3 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
     );
   }
 }
-

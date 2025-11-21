@@ -12,4 +12,7 @@
     <string name="keep_rear_screen_awake_service" translatable="false">Keep Rear Screen Awake Service</string>
     <string name="rear_screen_notification_service" translatable="false">Rear Screen Notification Service</string>
     <string name="rear_screen_record_service" translatable="false">Rear Screen Record Service</string>
+    <string name="nextbutton">nextButton</string>
+    <string name="playpausebutton">playpausebutton</string>
+    <string name="prevbutton">prevbutton</string>
 </resources>
