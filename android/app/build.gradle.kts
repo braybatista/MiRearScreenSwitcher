@@ -1,5 +1,9 @@
 import java.util.Properties
 import java.io.FileInputStream
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import com.android.build.api.variant.FilterConfiguration.FilterType
 
 plugins {
     id("com.android.application")
@@ -72,9 +76,22 @@ android {
             )
         }
     }
+}
 
-    // V20: NDK and CMake configuration
-    
+// Personalizar nombre del APK - debe estar FUERA del bloque android{}
+android.applicationVariants.all {
+    outputs.all {
+        val output = this as com.android.build.gradle.internal.api.BaseVariantOutputImpl
+        val versionName = android.defaultConfig.versionName
+        val buildType = buildType.name
+        val abi = output.filters.find { it.filterType == FilterType.ABI.name }?.identifier ?: "universal"
+        
+        // Obtener fecha y hora actual en formato MM-dd-yyyy_HH-mm-ss
+        val dateFormat = SimpleDateFormat("MM-dd-yyyy_HH-mm-ss", Locale.getDefault())
+        val buildTime = dateFormat.format(Date())
+        
+        output.outputFileName = "MRSS-v${versionName}-${buildType}-${abi}-${buildTime}.apk"
+    }
 }
 
 flutter {
