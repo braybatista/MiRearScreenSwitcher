@@ -16,25 +16,19 @@
 package com.tgwgroup.MiRearScreenSwitcher;
 
 import android.Manifest;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
-import android.media.session.MediaSession;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
 import androidx.core.app.ActivityCompat;
-import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
-import com.tgwgroup.MiRearScreenSwitcher.misc.Constants;
 import io.flutter.embedding.android.FlutterActivity;
 import io.flutter.embedding.engine.FlutterEngine;
 import io.flutter.plugin.common.MethodChannel;
@@ -196,7 +190,7 @@ public class MainActivity extends FlutterActivity {
      */
     private void startNotificationOnRearScreen(String packageName, String title, String text, long when) {
         if (taskService == null) {
-            Log.w(TAG, Constants.TASK_SERVICE_NOT_AVAILABLE);
+            Log.w(TAG, getString(R.string.task_service_not_available));
             return;
         }
         
@@ -262,11 +256,6 @@ public class MainActivity extends FlutterActivity {
                 Log.e(TAG, "Failed to show notification on rear screen", e);
             }
         }).start();
-    }
-
-    public void generateTestNotification(Context context) {
-        Intent intent = new Intent("com.tgwgroup.MiRearScreenSwitcher.FIND_AND_SHOW_MEDIA_NOTIFICATION");
-        context.sendBroadcast(intent);
     }
     
     /**
@@ -398,7 +387,7 @@ public class MainActivity extends FlutterActivity {
                                 result.error("ERROR", e.getMessage(), null);
                             }
                         } else {
-                            result.error("ERROR", Constants.TASK_SERVICE_NOT_AVAILABLE, null);
+                            result.error("ERROR", getString(R.string.task_service_not_available), null);
                         }
                         break;
                     }
@@ -414,7 +403,7 @@ public class MainActivity extends FlutterActivity {
                                 result.error("ERROR", e.getMessage(), null);
                             }
                         } else {
-                            result.error("ERROR", Constants.TASK_SERVICE_NOT_AVAILABLE, null);
+                            result.error("ERROR", getString(R.string.task_service_not_available), null);
                         }
                         break;
                     }
@@ -429,7 +418,7 @@ public class MainActivity extends FlutterActivity {
                                 result.error("ERROR", e.getMessage(), null);
                             }
                         } else {
-                            result.error("ERROR", Constants.TASK_SERVICE_NOT_AVAILABLE, null);
+                            result.error("ERROR", getString(R.string.task_service_not_available), null);
                         }
                         break;
                     }
@@ -444,7 +433,7 @@ public class MainActivity extends FlutterActivity {
                             result.success(null);
                         } catch (Exception e) {
                             Log.e(TAG, "Failed to open CoolApk profile", e);
-                            result.error("ERROR", Constants.COOLAPK_NOT_INSTALLED, null);
+                            result.error("ERROR", getString(R.string.coolapk_not_installed), null);
                         }
                         break;
                     }
@@ -459,7 +448,7 @@ public class MainActivity extends FlutterActivity {
                             result.success(null);
                         } catch (Exception e) {
                             Log.e(TAG, "Failed to open CoolApk profile", e);
-                            result.error("ERROR", Constants.COOLAPK_NOT_INSTALLED, null);
+                            result.error("ERROR", getString(R.string.coolapk_not_installed), null);
                         }
                         break;
                     }
@@ -474,7 +463,7 @@ public class MainActivity extends FlutterActivity {
                             result.success(null);
                         } catch (Exception e) {
                             Log.e(TAG, "Failed to open tutorial", e);
-                            result.error("ERROR", String.format(Constants.FAILED_TO_OPEN_TUTORIAL, e.getMessage()), null);
+                            result.error("ERROR", getString(R.string.failed_to_open_tutorial, e.getMessage()), null);
                         }
                         break;
                     }
@@ -489,7 +478,7 @@ public class MainActivity extends FlutterActivity {
                             result.success(null);
                         } catch (Exception e) {
                             Log.e(TAG, "Failed to open donation page", e);
-                            result.error("ERROR", String.format(Constants.FAILED_TO_OPEN_DONATION_PAGE, e.getMessage()), null);
+                            result.error("ERROR", getString(R.string.failed_to_open_donation_page, e.getMessage()), null);
                         }
                         break;
                     }
@@ -504,7 +493,7 @@ public class MainActivity extends FlutterActivity {
                             result.success(null);
                         } catch (Exception e) {
                             Log.e(TAG, "Failed to open QQ group page", e);
-                            result.error("ERROR", String.format(Constants.FAILED_TO_OPEN_QQ_GROUP_PAGE, e.getMessage()), null);
+                            result.error("ERROR", getString(R.string.failed_to_open_qq_group_page, e.getMessage()), null);
                         }
                         break;
                     }
@@ -535,7 +524,7 @@ public class MainActivity extends FlutterActivity {
                                 result.error("ERROR", e.getMessage(), null);
                             }
                         } else {
-                            result.error("ERROR", Constants.TASK_SERVICE_NOT_AVAILABLE, null);
+                            result.error("ERROR", getString(R.string.task_service_not_available), null);
                         }
                         break;
                     }
@@ -550,7 +539,7 @@ public class MainActivity extends FlutterActivity {
                                 result.error("ERROR", e.getMessage(), null);
                             }
                         } else {
-                            result.error("ERROR", Constants.TASK_SERVICE_NOT_AVAILABLE, null);
+                            result.error("ERROR", getString(R.string.task_service_not_available), null);
                         }
                         break;
                     }
@@ -590,7 +579,7 @@ public class MainActivity extends FlutterActivity {
                                 result.error("ERROR", e.getMessage(), null);
                             }
                         } else {
-                            result.error("ERROR", Constants.TASK_SERVICE_NOT_AVAILABLE, null);
+                            result.error("ERROR", getString(R.string.task_service_not_available), null);
                         }
                         break;
                     }
@@ -915,25 +904,6 @@ public class MainActivity extends FlutterActivity {
                         break;
                     }
 
-                    case "generateTestNotification": {
-                        // V2.5: notificacion de prueba
-                        try {
-                            Intent intent = new Intent("INTERRUPT_NOTIFICATION_ANIMATION");
-                            intent.setPackage(getPackageName());
-                            sendBroadcast(intent);
-
-                            //taskService.collapseStatusBar();
-
-                            generateTestNotification(getApplicationContext());
-
-                            result.success(true);
-                        } catch (Exception e) {
-                            Log.e(TAG, "Failed to call test notification", e);
-                            result.error("ERROR", e.getMessage(), null);
-                        }
-                        break;
-                    }
-
                     case "startNotificationMusicService": {
                         // V2.5: inicio de servicio de musica
                         try {
@@ -959,7 +929,15 @@ public class MainActivity extends FlutterActivity {
                             Intent intent = new Intent(this, NotificationService.class);
                             startService(intent);
                             Log.d(TAG, "[BABZ] NotificationMusicService started");
+                            
+                            // Enviar broadcast para mostrar widget persistente
+                            Intent broadcastIntent = new Intent("com.tgwgroup.MiRearScreenSwitcher.MUSIC_SERVICE_ENABLED");
+                            sendBroadcast(broadcastIntent);
                         } else {
+                            // Enviar broadcast para ocultar widget antes de detener el servicio
+                            Intent broadcastIntent = new Intent("com.tgwgroup.MiRearScreenSwitcher.MUSIC_SERVICE_DISABLED");
+                            sendBroadcast(broadcastIntent);
+                            
                             Intent intent = new Intent(this, NotificationService.class);
                             stopService(intent);
                             Log.d(TAG, "[BABZ] NotificationMusicService stopped");

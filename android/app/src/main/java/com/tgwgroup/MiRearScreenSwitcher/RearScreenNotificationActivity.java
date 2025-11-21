@@ -47,9 +47,9 @@ public class RearScreenNotificationActivity extends Activity {
     private android.content.BroadcastReceiver interruptReceiver = new android.content.BroadcastReceiver() {
         @Override
         public void onReceive(android.content.Context context, android.content.Intent intent) {
-            Log.d(TAG, "🔄 [BABZ] 收到打断广播（新动画来了），立即销毁但不恢复Launcher");
             Log.d(TAG, "🔄 [BABZ] [BroadcastReceiver] [onReceive] intent" + intent.toString());
             if ("com.tgwgroup.MiRearScreenSwitcher.INTERRUPT_NOTIFICATION_ANIMATION".equals(intent.getAction())) {
+                Log.d(TAG, "� 收到打断广播（新动画来了），立即销毁但不恢复Launcher");
                 finish();
             }
         }
@@ -95,15 +95,18 @@ public class RearScreenNotificationActivity extends Activity {
             applyRegularLayout();
         }
         
-        // V3.2: 保持常亮 + 锁屏显示
+        // V3.2: 保持常亮 + 锁屏显示 + dismiss keyguard
         getWindow().addFlags(
             android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON |
-            android.view.WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
+            android.view.WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
+            android.view.WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON |
+            android.view.WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
         );
         
         // 适配新API：锁屏时显示
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O_MR1) {
             setShowWhenLocked(true);
+            //setTurnScreenOn(true);
         }
         
         // 设置窗口背景，防止上滑回桌面时露出白色底
@@ -410,12 +413,15 @@ public class RearScreenNotificationActivity extends Activity {
         // V3.2: 再次确保Window flags（保持常亮 + 锁屏显示）
         getWindow().addFlags(
             android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON |
-            android.view.WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
+            android.view.WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
+            android.view.WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON |
+            android.view.WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
         );
         
         // 确保锁屏显示设置持续生效
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O_MR1) {
             setShowWhenLocked(true);
+            //setTurnScreenOn(true);
         }
         
         // 确保Handler已初始化

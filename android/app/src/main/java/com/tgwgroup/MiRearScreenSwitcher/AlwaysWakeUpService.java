@@ -16,7 +16,6 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.util.Log;
 
-import com.tgwgroup.MiRearScreenSwitcher.misc.ServicesNamesConstants;
 import rikka.shizuku.Shizuku;
 
 /**
@@ -105,10 +104,10 @@ public class AlwaysWakeUpService extends Service {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(
                 channelId,
-                ServicesNamesConstants.ALWAYS_WAKE_UP_SERVICE_NOTIFICATION_CHANNEL_NAME,
+                getString(R.string.notif_kernel_service),
                 NotificationManager.IMPORTANCE_LOW
             );
-            channel.setDescription(ServicesNamesConstants.ALWAYS_WAKE_UP_SERVICE_NOTIFICATION_CHANNEL_DESCRIPTION);
+            channel.setDescription(getString(R.string.notif_mrss_running));
             channel.setShowBadge(false);
             NotificationManager manager = getSystemService(NotificationManager.class);
             if (manager != null) {
@@ -130,8 +129,8 @@ public class AlwaysWakeUpService extends Service {
         }
         
         Notification notification = builder
-            .setContentTitle(ServicesNamesConstants.ALWAYS_WAKE_UP_SERVICE_NOTIFICATION_TITLE)
-            .setContentText(ServicesNamesConstants.ALWAYS_WAKE_UP_SERVICE_NOTIFICATION_TEXT)
+            .setContentTitle(getString(R.string.notif_kernel_service))
+            .setContentText(getString(R.string.notif_mrss_running))
             .setSmallIcon(R.mipmap.ic_launcher)
             .setContentIntent(pendingIntent)
             .setOngoing(true)

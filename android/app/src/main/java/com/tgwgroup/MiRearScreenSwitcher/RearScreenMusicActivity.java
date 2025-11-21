@@ -35,6 +35,16 @@ public class RearScreenMusicActivity extends Activity {
     private RelativeLayout rootLayout;
 
     private MediaController mediaController;
+    
+    private android.content.BroadcastReceiver closeReceiver = new android.content.BroadcastReceiver() {
+        @Override
+        public void onReceive(android.content.Context context, android.content.Intent intent) {
+            if ("com.tgwgroup.MiRearScreenSwitcher.CLOSE_MUSIC_WIDGET".equals(intent.getAction())) {
+                Log.d(TAG, "Received close broadcast - finishing activity");
+                finish();
+            }
+        }
+    };
 
     private final MediaController.Callback mediaCallback = new MediaController.Callback() {
         @Override
@@ -59,10 +69,15 @@ public class RearScreenMusicActivity extends Activity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             setShowWhenLocked(true);
             setTurnScreenOn(true);
-        } else {
-            getWindow().addFlags(WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
-                    | WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
         }
+        
+        // Agregar flags críticas para lockscreen
+        getWindow().addFlags(
+            WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON |
+            WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
+            WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON |
+            WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
+        );
 
         // Make activity fullscreen
         getWindow().getDecorView().setSystemUiVisibility(
@@ -111,6 +126,14 @@ public class RearScreenMusicActivity extends Activity {
         });
 
         closeButton.setOnClickListener(v -> finishAndRestore());
+        
+        // Registrar receptor para cerrar cuando se desactive el servicio
+        android.content.IntentFilter closeFilter = new android.content.IntentFilter("com.tgwgroup.MiRearScreenSwitcher.CLOSE_MUSIC_WIDGET");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(closeReceiver, closeFilter, android.content.Context.RECEIVER_NOT_EXPORTED);
+        } else {
+            registerReceiver(closeReceiver, closeFilter);
+        }
     }
 
     @Override
@@ -234,6 +257,11 @@ public class RearScreenMusicActivity extends Activity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        try {
+            unregisterReceiver(closeReceiver);
+        } catch (Exception e) {
+            Log.w(TAG, "Failed to unregister receiver", e);
+        }
         if (mediaController != null) {
             mediaController.unregisterCallback(mediaCallback);
         }

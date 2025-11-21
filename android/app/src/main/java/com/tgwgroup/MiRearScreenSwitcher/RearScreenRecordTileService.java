@@ -22,7 +22,6 @@ import android.service.quicksettings.Tile;
 import android.service.quicksettings.TileService;
 import android.util.Log;
 import android.widget.Toast;
-import com.tgwgroup.MiRearScreenSwitcher.misc.Constants;
 
 /**
  * Quick Settings Tile - 背屏录屏
@@ -53,7 +52,7 @@ public class RearScreenRecordTileService extends TileService {
             if (!Settings.canDrawOverlays(this)) {
                 Log.w(TAG, "无悬浮窗权限");
                 
-                Toast.makeText(this, Constants.REAR_SCREEN_RECORD_TILE_SERVICE_GRANT_OVERLAY_PERMISSION, Toast.LENGTH_LONG).show();
+                Toast.makeText(this, getString(R.string.record_grant_overlay_permission), Toast.LENGTH_LONG).show();
                 
                 // 跳转到权限设置页面
                 Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);

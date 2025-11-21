@@ -1,11 +1,90 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="app_name">MRSS</string>
     <string name="tile_label">Cambiar a Trasera</string>
     <string name="tile_screenshot_label">Captura Trasera</string>
     <string name="tile_record_label">Grabar Pantalla Trasera</string>
     <string name="uninstall_title">"😭¿De verdad quieres desinstalar MRSS?😭\n😭¿De verdad quieres desinstalar MRSS?😭\n😭¿De verdad quieres desinstalar MRSS?😭\n"</string>
     <string name="uninstall_content">"\n\n\n😭Vuelve MRSS😭\n🌟Mi fe más orgullosa🌟\n⚡️Las escenas de la pantalla trasera siguen vivas en mi mente⚡️\n😭Las lágrimas fluyen sin razón😭\n💥Recuerdo vagamente proyectar aplicaciones en la parte de atrás💥\n👍Y el equipo poderoso (Nota del autor: se refiere a am force-stop)👍\n⚡️Venciendo incluso al Xiaomi SubScreenCenter⚡️\n✨Sin cansancio incluso después de toda la noche✨\n\n\n"</string>
+
+    <string name="rear_screen_roaming_service">Servicio de itinerancia de pantalla trasera</string>
+    <string name="charging_animation_service">Servicio de animación de carga</string>
+    <string name="keep_rear_screen_awake_service">Servicio para mantener la pantalla trasera activa</string>
+    <string name="rear_screen_notification_service">Servicio de notificaciones de pantalla trasera</string>
+    <string name="rear_screen_record_service">Servicio de grabación de pantalla trasera</string>
+
+    <string name="privacy_mode_enabled">Privacy Mode Enabled</string>
+    <string name="new_message_placeholder">You have a new message</string>
+    <string name="toast_cast_to_rear">cast to rear screen</string>
+    <string name="toast_switch_failed">Switch failed</string>
+    <string name="toast_return_to_main">returned to main screen</string>
+    <string name="toast_not_on_rear">Not on rear screen</string>
+    <string name="toast_app_not_found">App not found</string>
+    <string name="toast_screenshot_saved">Rear screen screenshot saved</string>
+    <string name="toast_please_switch_back">Please switch %s back to main screen first</string>
+    <string name="notif_kernel_service">MRSS Core Service</string>
+    <string name="notif_running_on_rear">%s running on rear screen</string>
+    <string name="notif_click_to_return">Tap to switch %s back to main screen</string>
+    <string name="notif_mrss_running">MRSS is currently running</string>
+
     <string name="nextbutton">nextButton</string>
     <string name="playpausebutton">playpausebutton</string>
     <string name="prevbutton">prevbutton</string>
+
+    <!-- MainActivity -->
+    <string name="coolapk_not_installed">Por favor, instale CoolApk primero</string>
+    <string name="failed_to_open_tutorial">Fallo al abrir el tutorial: %s</string>
+    <string name="failed_to_open_donation_page">Fallo al abrir la página de donaciones: %s</string>
+    <string name="failed_to_open_qq_group_page">Fallo al abrir la página del grupo de QQ: %s</string>
+    <string name="task_service_not_available">TaskService no disponible</string>
+
+    <!-- ScreenRecordService -->
+    <string name="screen_record_failed_to_show_floating_window">Error al mostrar la ventana flotante: %s</string>
+    <string name="screen_record_please_stop_recording_first">Por favor, detenga la grabación primero</string>
+    <string name="screen_record_service_not_ready">Servicio no listo, por favor intente de nuevo más tarde</string>
+    <string name="screen_record_not_supported">El sistema no soporta el comando screenrecord</string>
+    <string name="screen_record_failed_to_start">Error al iniciar la grabación de pantalla</string>
+    <string name="screen_record_process_failed_to_start">El proceso de grabación de pantalla no se pudo iniciar</string>
+    <string name="screen_record_started">Iniciada la grabación de la pantalla trasera</string>
+    <string name="screen_record_failed">Error en la grabación de pantalla: %s</string>
+    <string name="screen_record_cannot_stop">Servicio no listo, no se puede detener la grabación</string>
+    <string name="screen_record_saved">Grabación de pantalla guardada en la carpeta Movies</string>
+    <string name="screen_record_may_have_failed">La grabación de pantalla puede haber fallado, por favor revise la carpeta Movies</string>
+
+    <!-- SwitchToRearTileService -->
+    <string name="switch_service_not_ready">Servicio no listo</string>
+    <string name="switch_grant_permissions">Por favor, abra la aplicación y otorgue los permisos primero</string>
+    <string name="switch_switching">Cambiando...</string>
+    <string name="switch_back_first">Por favor, cambie %s de nuevo a la pantalla principal primero</string>
+    <string name="switch_rear_screen_occupied">✗ Pantalla trasera ocupada</string>
+    <string name="switch_moved_to_rear_screen">%s ha sido movido a la pantalla trasera</string>
+    <string name="switch_switched">✓ Cambiado</string>
+    <string name="switch_failed">Cambio fallido</string>
+    <string name="switch_failed_generic">✗ Falló</string>
+    <string name="switch_app_not_found">✗ Aplicación no encontrada</string>
+    <string name="switch_operation_failed">✗ Operación fallida</string>
+
+    <!-- UriCommandService -->
+    <string name="uri_moved_to_rear_screen">%s movido a la pantalla trasera</string>
+    <string name="uri_switch_failed">Cambio fallido</string>
+    <string name="uri_switch_failed_with_reason">Cambio fallido: %s</string>
+    <string name="uri_returned_to_main_screen">%s devuelto a la pantalla principal</string>
+    <string name="uri_app_not_on_rear_screen">La aplicación no está en la pantalla trasera</string>
+    <string name="uri_app_to_return_not_found">No se encontró la aplicación para devolver</string>
+    <string name="uri_rear_screen_screenshot_saved">Captura de pantalla trasera guardada</string>
+
+    <!-- RearScreenshotTileService -->
+    <string name="screenshot_service_not_ready">✗ Servicio no listo</string>
+    <string name="screenshot_saved">✓ Guardado</string>
+
+    <!-- RearScreenKeeperService -->
+    <string name="keeper_returned_to_main_screen">%s devuelto a la pantalla principal</string>
+    <string name="keeper_application">APP</string>
+
+    <!-- RearScreenRecordTileService -->
+    <string name="record_grant_overlay_permission">Por favor, conceda el permiso de superposición primero</string>
+
+    <!-- NotificationService -->
+    <string name="notification_privacy_mode_enabled">Modo privacidad activado</string>
+    <string name="notification_new_message">Tienes un nuevo mensaje</string>
 </resources>
