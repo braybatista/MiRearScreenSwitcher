@@ -39,8 +39,6 @@ import android.view.WindowManager;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 import androidx.core.app.NotificationCompat;
-import com.tgwgroup.MiRearScreenSwitcher.misc.Constants;
-import com.tgwgroup.MiRearScreenSwitcher.misc.ServicesNamesConstants;
 import rikka.shizuku.Shizuku;
 
 /**
@@ -114,7 +112,7 @@ public class ScreenRecordService extends Service {
         } catch (Exception e) {
             Log.e(TAG, "❌ 显示悬浮窗失败", e);
             e.printStackTrace();
-            Toast.makeText(this, String.format(Constants.SCREEN_RECORD_SERVICE_FAILED_TO_SHOW_FLOATING_WINDOW, e.getMessage()), Toast.LENGTH_LONG).show();
+            Toast.makeText(this, getString(R.string.screen_record_failed_to_show_floating_window, e.getMessage()), Toast.LENGTH_LONG).show();
         }
         
         Log.d(TAG, "═══════════════════════════════════════");
@@ -167,8 +165,8 @@ public class ScreenRecordService extends Service {
         
         // 统一使用MRSS内核服务的通知样式
         return new NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle(ServicesNamesConstants.REAR_SCREEN_KEEPER_SERVICE_NOTIFICATION_CHANNEL_NAME)
-            .setContentText(ServicesNamesConstants.REAR_SCREEN_KEEPER_SERVICE_NOTIFICATION_CONTENT_TEXT)
+            .setContentTitle(getString(R.string.notif_kernel_service))
+            .setContentText(getString(R.string.notif_mrss_running))
             .setSmallIcon(R.mipmap.ic_launcher)
             .setContentIntent(pendingIntent)
             .setOngoing(true)
@@ -267,7 +265,7 @@ public class ScreenRecordService extends Service {
         closeButton.setOnClickListener(v -> {
             // 录制中不允许关闭
             if (isRecording) {
-                Toast.makeText(this, Constants.SCREEN_RECORD_SERVICE_PLEASE_STOP_RECORDING_FIRST, Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, getString(R.string.screen_record_please_stop_recording_first), Toast.LENGTH_SHORT).show();
                 return;
             }
             // 停止服务（关闭悬浮窗）
@@ -446,7 +444,7 @@ public class ScreenRecordService extends Service {
             if (!ensureTaskServiceConnected()) {
                 Log.e(TAG, "TaskService未连接");
                 new Handler(Looper.getMainLooper()).post(() -> {
-                    Toast.makeText(this, Constants.SCREEN_RECORD_SERVICE_NOT_READY, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, getString(R.string.screen_record_service_not_ready), Toast.LENGTH_SHORT).show();
                 });
                 return;
             }
@@ -489,7 +487,7 @@ public class ScreenRecordService extends Service {
                 if (testResult == null || testResult.trim().isEmpty()) {
                     Log.e(TAG, "❌ screenrecord命令不存在");
                     new Handler(Looper.getMainLooper()).post(() -> {
-                        Toast.makeText(this, Constants.SCREEN_RECORD_SERVICE_NOT_SUPPORTED, Toast.LENGTH_LONG).show();
+                        Toast.makeText(this, getString(R.string.screen_record_not_supported), Toast.LENGTH_LONG).show();
                     });
                     return;
                 }
@@ -514,7 +512,7 @@ public class ScreenRecordService extends Service {
                 if (!cmdSuccess) {
                     Log.e(TAG, "❌ 启动录屏命令失败");
                     new Handler(Looper.getMainLooper()).post(() -> {
-                        Toast.makeText(this, Constants.SCREEN_RECORD_SERVICE_FAILED_TO_START, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, getString(R.string.screen_record_failed_to_start), Toast.LENGTH_SHORT).show();
                     });
                     return;
                 }
@@ -582,7 +580,7 @@ public class ScreenRecordService extends Service {
                     Log.e(TAG, "错误信息: " + errorMsg);
                     
                     new Handler(Looper.getMainLooper()).post(() -> {
-                        Toast.makeText(this, Constants.SCREEN_RECORD_SERVICE_PROCESS_FAILED_TO_START, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, getString(R.string.screen_record_process_failed_to_start), Toast.LENGTH_SHORT).show();
                     });
                     return;
                 }
@@ -595,7 +593,7 @@ public class ScreenRecordService extends Service {
                         nm.notify(NOTIFICATION_ID, notification);
                     }
                     
-                    Toast.makeText(this, Constants.SCREEN_RECORD_SERVICE_STARTED, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, getString(R.string.screen_record_started), Toast.LENGTH_SHORT).show();
                 });
                 
                 Log.d(TAG, "✅ 录屏已开始: " + currentVideoPath);
@@ -605,7 +603,7 @@ public class ScreenRecordService extends Service {
                 e.printStackTrace();
                 isRecording = false;
                 new Handler(Looper.getMainLooper()).post(() -> {
-                    Toast.makeText(this, String.format(Constants.SCREEN_RECORD_SERVICE_FAILED, e.getMessage()), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, getString(R.string.screen_record_failed, e.getMessage()), Toast.LENGTH_SHORT).show();
                 });
             }
         }).start();
@@ -624,7 +622,7 @@ public class ScreenRecordService extends Service {
             if (!ensureTaskServiceConnected()) {
                 Log.e(TAG, "❌ 停止录制失败：TaskService未连接");
                 new Handler(Looper.getMainLooper()).post(() -> {
-                    Toast.makeText(this, Constants.SCREEN_RECORD_SERVICE_CANNOT_STOP, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, getString(R.string.screen_record_cannot_stop), Toast.LENGTH_SHORT).show();
                 });
                 return;
             }
@@ -671,9 +669,9 @@ public class ScreenRecordService extends Service {
                         }
                         
                         if (fileInfo != null && !fileInfo.contains("No such file")) {
-                            Toast.makeText(this, Constants.SCREEN_RECORD_SERVICE_SAVED, Toast.LENGTH_LONG).show();
+                            Toast.makeText(this, getString(R.string.screen_record_saved), Toast.LENGTH_LONG).show();
                         } else {
-                            Toast.makeText(this, Constants.SCREEN_RECORD_SERVICE_MAY_HAVE_FAILED, Toast.LENGTH_LONG).show();
+                            Toast.makeText(this, getString(R.string.screen_record_may_have_failed), Toast.LENGTH_LONG).show();
                         }
                         
                         // 显示关闭按钮

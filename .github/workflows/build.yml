@@ -4,15 +4,8 @@ permissions:
   contents: write
 
 on:
+  # Run only on tag pushes to avoid firing on PR creation/pushes to feature branches
   push:
-    paths-ignore:
-      - '**.md'
-      - '**.metadata'
-      - '.vscode/**'
-      - '.VSCodeCounter/**'
-      - '.gitignore'
-    branches:
-      - '*'
     tags:
       - '*'
 

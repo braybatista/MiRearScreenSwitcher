@@ -76,7 +76,7 @@ class AppTranslations {
 
         // Misc
         'rear_screen_notifications': '📢 背屏通知',
-        'rear_screen_music_notifications': '📢 背屏音乐通知',
+        'rear_screen_music_notifications': '📀 背屏音乐通知',
         'test_notification': '📢 测试通知',
         'burnin_warning': '警告：可能导致烧屏和额外耗电',
         'select_apps': '选择应用',
@@ -215,7 +215,7 @@ class AppTranslations {
         'rotation_error': 'Error: %s',
 
         'rear_screen_notifications': '📢 Rear Screen Notifications',
-        'rear_screen_music_notifications': '📢 Rear Screen Music Notifications',
+        'rear_screen_music_notifications': '📀 Rear Screen Music Notifications',
         'test_notification': '📢 Test Notification',
         'burnin_warning': 'Warning: May cause screen burn-in and extra power consumption',
         'select_apps': 'Select apps',
@@ -356,7 +356,7 @@ class AppTranslations {
         'rotation_error': 'Error: %s',
 
         'rear_screen_notifications': '📢 Notificaciones Aplicaciones',
-        'rear_screen_music_notifications': '📢 Notification de Musica',
+        'rear_screen_music_notifications': '📀 Notification de Musica',
         'test_notification': '📢 Notificación de prueba',
         'burnin_warning': 'Advertencia: Puede causar marcas en la pantalla y consumo extra',
         'select_apps': 'Seleccionar apps',

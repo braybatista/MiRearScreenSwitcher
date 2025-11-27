@@ -258,7 +258,8 @@ public class ChargingService extends Service {
         bindTaskService();
         
         // 启动前台服务保活（使用统一的内核服务通知）
-        startForeground(NOTIFICATION_ID, RearScreenKeeperService.createServiceNotification(this));
+        RearScreenKeeperService service = new RearScreenKeeperService();
+        startForeground(NOTIFICATION_ID, service.createServiceNotification(this));
         Log.d(TAG, "✓ 前台服务已启动（使用内核服务通知）");
     }
     

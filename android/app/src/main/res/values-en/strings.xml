@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MRSS</string>
+    <string name="tile_label">Switch to Rear Screen</string>
+    <string name="tile_screenshot_label">Rear Screen Screenshot</string>
+    <string name="tile_record_label">Rear Screen Record</string>
+    <string name="uninstall_title">😭Are you sure you want to uninstall MRSS?😭\n😭Are you sure you want to uninstall MRSS?😭\n😭Are you sure you want to uninstall MRSS?😭\n</string>
+    <string name="uninstall_content">\n\n\n😭Come back MRSS😭\n🌟My proudest belief🌟\n⚡️Rear screen scenes vividly⚡️\n😭Tears flow inexplicably😭\n💥Remember app on rear💥\n👍And powerful tools (Author note: refers to am force-stop)👍\n⚡️Beat Xiaomi SubScreenCenter⚡️\n✨Stay up all night not tired✨\n\n\n</string>
+
+    <string name="rear_screen_roaming_service">Rear Screen Roaming Service</string>
+    <string name="charging_animation_service">Charging Animation Service</string>
+    <string name="keep_rear_screen_awake_service">Keep Rear Screen Awake Service</string>
+    <string name="rear_screen_notification_service">Rear Screen Notification Service</string>
+    <string name="rear_screen_record_service">Rear Screen Recording Service</string>
+
+    <string name="privacy_mode_enabled">Privacy Mode Enabled</string>
+    <string name="new_message_placeholder">You have a new message</string>
+    <string name="toast_cast_to_rear">cast to rear screen</string>
+    <string name="toast_switch_failed">Switch failed</string>
+    <string name="toast_return_to_main">returned to main screen</string>
+    <string name="toast_not_on_rear">Not on rear screen</string>
+    <string name="toast_app_not_found">App not found</string>
+    <string name="toast_screenshot_saved">Rear screen screenshot saved</string>
+    <string name="toast_please_switch_back">Please switch %s back to main screen first</string>
+    <string name="notif_kernel_service">MRSS Core Service</string>
+    <string name="notif_running_on_rear">%s running on rear screen</string>
+    <string name="notif_click_to_return">Tap to switch %s back to main screen</string>
+    <string name="notif_mrss_running">MRSS is currently running</string>
+
+    <string name="nextbutton">nextButton</string>
+    <string name="playpausebutton">playpausebutton</string>
+    <string name="prevbutton">prevbutton</string>
+
+    <!-- MainActivity -->
+    <string name="coolapk_not_installed">Please install CoolApk first</string>
+    <string name="failed_to_open_tutorial">Failed to open tutorial: %s</string>
+    <string name="failed_to_open_donation_page">Failed to open donation page: %s</string>
+    <string name="failed_to_open_qq_group_page">Failed to open QQ group page: %s</string>
+    <string name="task_service_not_available">TaskService not available</string>
+
+    <!-- ScreenRecordService -->
+    <string name="screen_record_failed_to_show_floating_window">Failed to show floating window: %s</string>
+    <string name="screen_record_please_stop_recording_first">Please stop recording first</string>
+    <string name="screen_record_service_not_ready">Service not ready, please try again later</string>
+    <string name="screen_record_not_supported">System does not support screenrecord command</string>
+    <string name="screen_record_failed_to_start">Failed to start screen recording</string>
+    <string name="screen_record_process_failed_to_start">Screen recording process failed to start</string>
+    <string name="screen_record_started">Started recording rear screen</string>
+    <string name="screen_record_failed">Screen recording failed: %s</string>
+    <string name="screen_record_cannot_stop">Service not ready, cannot stop recording</string>
+    <string name="screen_record_saved">Screen recording saved to Movies folder</string>
+    <string name="screen_record_may_have_failed">Screen recording may have failed, please check the Movies folder</string>
+
+    <!-- SwitchToRearTileService -->
+    <string name="switch_service_not_ready">Service not ready</string>
+    <string name="switch_grant_permissions">Please open the app and grant permissions first</string>
+    <string name="switch_switching">Switching…</string>
+    <string name="switch_back_first">Please switch %s back to the main screen first</string>
+    <string name="switch_rear_screen_occupied">✗ Rear screen occupied</string>
+    <string name="switch_moved_to_rear_screen">%s has been moved to the rear screen</string>
+    <string name="switch_switched">✓ Switched</string>
+    <string name="switch_failed">Switch failed</string>
+    <string name="switch_failed_generic">✗ Failed</string>
+    <string name="switch_app_not_found">✗ App not found</string>
+    <string name="switch_operation_failed">✗ Operation failed</string>
+
+    <!-- UriCommandService -->
+    <string name="uri_moved_to_rear_screen">%s moved to rear screen</string>
+    <string name="uri_switch_failed">Switch failed</string>
+    <string name="uri_switch_failed_with_reason">Switch failed: %s</string>
+    <string name="uri_returned_to_main_screen">%s returned to main screen</string>
+    <string name="uri_app_not_on_rear_screen">App not on rear screen</string>
+    <string name="uri_app_to_return_not_found">App to return not found</string>
+    <string name="uri_rear_screen_screenshot_saved">Rear screen screenshot saved</string>
+
+    <!-- RearScreenshotTileService -->
+    <string name="screenshot_service_not_ready">✗ Service not ready</string>
+    <string name="screenshot_saved">✓ Saved</string>
+
+    <!-- RearScreenKeeperService -->
+    <string name="keeper_returned_to_main_screen">%s returned to main screen</string>
+    <string name="keeper_application">Application</string>
+
+    <!-- RearScreenRecordTileService -->
+    <string name="record_grant_overlay_permission">Please grant overlay permission first</string>
+
+    <!-- NotificationService -->
+    <string name="notification_privacy_mode_enabled">Privacy mode enabled</string>
+    <string name="notification_new_message">You have a new message</string>
+</resources>

@@ -111,4 +111,8 @@ dependencies {
     // Dependencia para MediaStyle en las notificaciones
     implementation("androidx.media:media:1.7.1")
     // Nota: La línea de arriba ya cubre MediaStyle también.
+    
+    implementation("com.google.android.material:material:1.13.0")
+
+    implementation("androidx.cardview:cardview:1.0.0")
 }

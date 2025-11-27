@@ -16,25 +16,19 @@
 package com.tgwgroup.MiRearScreenSwitcher;
 
 import android.Manifest;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
-import android.media.session.MediaSession;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
 import androidx.core.app.ActivityCompat;
-import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
-import com.tgwgroup.MiRearScreenSwitcher.misc.Constants;
 import io.flutter.embedding.android.FlutterActivity;
 import io.flutter.embedding.engine.FlutterEngine;
 import io.flutter.plugin.common.MethodChannel;
@@ -196,7 +190,7 @@ public class MainActivity extends FlutterActivity {
      */
     private void startNotificationOnRearScreen(String packageName, String title, String text, long when) {
         if (taskService == null) {
-            Log.w(TAG, Constants.TASK_SERVICE_NOT_AVAILABLE);
+            Log.w(TAG, getString(R.string.task_service_not_available));
             return;
         }
         
@@ -263,11 +257,6 @@ public class MainActivity extends FlutterActivity {
             }
         }).start();
     }
-
-    public void generateTestNotification(Context context) {
-        Intent intent = new Intent("com.tgwgroup.MiRearScreenSwitcher.FIND_AND_SHOW_MEDIA_NOTIFICATION");
-        context.sendBroadcast(intent);
-    }
     
     /**
      * 执行Shell命令（供RearScreenChargingActivity调用）
@@ -316,6 +305,17 @@ public class MainActivity extends FlutterActivity {
         methodChannel = new MethodChannel(flutterEngine.getDartExecutor().getBinaryMessenger(), CHANNEL);
         methodChannel.setMethodCallHandler((call, result) -> {
                 switch (call.method) {
+                    case "testControlBroadcasts": {
+                        // Lanzar secuencia de broadcasts para pruebas rápidas
+                        try {
+                            testControlBroadcasts();
+                            result.success(true);
+                        } catch (Exception e) {
+                            Log.e(TAG, "Failed to test control broadcasts", e);
+                            result.error("TEST_FAILED", e.getMessage(), null);
+                        }
+                        break;
+                    }
                     case "checkShizuku": {
                         try {
                             boolean isRunning = Shizuku.pingBinder();
@@ -398,7 +398,7 @@ public class MainActivity extends FlutterActivity {
                                 result.error("ERROR", e.getMessage(), null);
                             }
                         } else {
-                            result.error("ERROR", Constants.TASK_SERVICE_NOT_AVAILABLE, null);
+                            result.error("ERROR", getString(R.string.task_service_not_available), null);
                         }
                         break;
                     }
@@ -414,7 +414,7 @@ public class MainActivity extends FlutterActivity {
                                 result.error("ERROR", e.getMessage(), null);
                             }
                         } else {
-                            result.error("ERROR", Constants.TASK_SERVICE_NOT_AVAILABLE, null);
+                            result.error("ERROR", getString(R.string.task_service_not_available), null);
                         }
                         break;
                     }
@@ -429,7 +429,7 @@ public class MainActivity extends FlutterActivity {
                                 result.error("ERROR", e.getMessage(), null);
                             }
                         } else {
-                            result.error("ERROR", Constants.TASK_SERVICE_NOT_AVAILABLE, null);
+                            result.error("ERROR", getString(R.string.task_service_not_available), null);
                         }
                         break;
                     }
@@ -444,7 +444,7 @@ public class MainActivity extends FlutterActivity {
                             result.success(null);
                         } catch (Exception e) {
                             Log.e(TAG, "Failed to open CoolApk profile", e);
-                            result.error("ERROR", Constants.COOLAPK_NOT_INSTALLED, null);
+                            result.error("ERROR", getString(R.string.coolapk_not_installed), null);
                         }
                         break;
                     }
@@ -459,7 +459,7 @@ public class MainActivity extends FlutterActivity {
                             result.success(null);
                         } catch (Exception e) {
                             Log.e(TAG, "Failed to open CoolApk profile", e);
-                            result.error("ERROR", Constants.COOLAPK_NOT_INSTALLED, null);
+                            result.error("ERROR", getString(R.string.coolapk_not_installed), null);
                         }
                         break;
                     }
@@ -474,7 +474,7 @@ public class MainActivity extends FlutterActivity {
                             result.success(null);
                         } catch (Exception e) {
                             Log.e(TAG, "Failed to open tutorial", e);
-                            result.error("ERROR", String.format(Constants.FAILED_TO_OPEN_TUTORIAL, e.getMessage()), null);
+                            result.error("ERROR", getString(R.string.failed_to_open_tutorial, e.getMessage()), null);
                         }
                         break;
                     }
@@ -489,7 +489,7 @@ public class MainActivity extends FlutterActivity {
                             result.success(null);
                         } catch (Exception e) {
                             Log.e(TAG, "Failed to open donation page", e);
-                            result.error("ERROR", String.format(Constants.FAILED_TO_OPEN_DONATION_PAGE, e.getMessage()), null);
+                            result.error("ERROR", getString(R.string.failed_to_open_donation_page, e.getMessage()), null);
                         }
                         break;
                     }
@@ -504,7 +504,7 @@ public class MainActivity extends FlutterActivity {
                             result.success(null);
                         } catch (Exception e) {
                             Log.e(TAG, "Failed to open QQ group page", e);
-                            result.error("ERROR", String.format(Constants.FAILED_TO_OPEN_QQ_GROUP_PAGE, e.getMessage()), null);
+                            result.error("ERROR", getString(R.string.failed_to_open_qq_group_page, e.getMessage()), null);
                         }
                         break;
                     }
@@ -535,7 +535,7 @@ public class MainActivity extends FlutterActivity {
                                 result.error("ERROR", e.getMessage(), null);
                             }
                         } else {
-                            result.error("ERROR", Constants.TASK_SERVICE_NOT_AVAILABLE, null);
+                            result.error("ERROR", getString(R.string.task_service_not_available), null);
                         }
                         break;
                     }
@@ -550,7 +550,7 @@ public class MainActivity extends FlutterActivity {
                                 result.error("ERROR", e.getMessage(), null);
                             }
                         } else {
-                            result.error("ERROR", Constants.TASK_SERVICE_NOT_AVAILABLE, null);
+                            result.error("ERROR", getString(R.string.task_service_not_available), null);
                         }
                         break;
                     }
@@ -590,7 +590,7 @@ public class MainActivity extends FlutterActivity {
                                 result.error("ERROR", e.getMessage(), null);
                             }
                         } else {
-                            result.error("ERROR", Constants.TASK_SERVICE_NOT_AVAILABLE, null);
+                            result.error("ERROR", getString(R.string.task_service_not_available), null);
                         }
                         break;
                     }
@@ -915,29 +915,11 @@ public class MainActivity extends FlutterActivity {
                         break;
                     }
 
-                    case "generateTestNotification": {
-                        // V2.5: notificacion de prueba
-                        try {
-                            Intent intent = new Intent("INTERRUPT_NOTIFICATION_ANIMATION");
-                            intent.setPackage(getPackageName());
-                            sendBroadcast(intent);
-
-                            //taskService.collapseStatusBar();
-
-                            generateTestNotification(getApplicationContext());
-
-                            result.success(true);
-                        } catch (Exception e) {
-                            Log.e(TAG, "Failed to call test notification", e);
-                            result.error("ERROR", e.getMessage(), null);
-                        }
-                        break;
-                    }
-
                     case "startNotificationMusicService": {
                         // V2.5: inicio de servicio de musica
                         try {
                             Intent intent = new Intent("com.tgwgroup.MiRearScreenSwitcher.FIND_AND_SHOW_MEDIA_NOTIFICATION");
+                            intent.setPackage(getPackageName()); // asegura envío interno
                             sendBroadcast(intent);
 
                             result.success(true);
@@ -953,13 +935,22 @@ public class MainActivity extends FlutterActivity {
                         boolean enabled = (boolean) call.argument("enabled");
 
                         SharedPreferences prefs = getSharedPreferences("mrss_settings", MODE_PRIVATE);
-                        //prefs.edit().putBoolean("notification_music_service_enabled", enabled).apply();
 
                         if (enabled) {
                             Intent intent = new Intent(this, NotificationService.class);
                             startService(intent);
                             Log.d(TAG, "[BABZ] NotificationMusicService started");
+
+                            // Enviar broadcast para ocultar widget antes de detener el servicio
+                            Intent intentEnabled = new Intent("com.tgwgroup.MiRearScreenSwitcher.MUSIC_SERVICE_ENABLED");
+                            intentEnabled.setPackage(getPackageName()); // asegura envío interno
+                            sendBroadcast(intentEnabled);
                         } else {
+                            // Enviar broadcast para ocultar widget antes de detener el servicio
+                            Intent intentDisabled = new Intent("com.tgwgroup.MiRearScreenSwitcher.MUSIC_SERVICE_DISABLED");
+                            intentDisabled.setPackage(getPackageName()); // asegura envío interno
+                            sendBroadcast(intentDisabled);
+
                             Intent intent = new Intent(this, NotificationService.class);
                             stopService(intent);
                             Log.d(TAG, "[BABZ] NotificationMusicService stopped");
@@ -976,6 +967,58 @@ public class MainActivity extends FlutterActivity {
                         result.notImplemented();
                 }
             });
+    }
+
+    /**
+     * Emite en secuencia los intents de control y arranca el NotificationService si es necesario.
+     * Útil para pruebas desde Flutter mediante MethodChannel: "testControlBroadcasts".
+     */
+    public void testControlBroadcasts() {
+        // Asegurar que el servicio esté activo para registrar receivers dinámicos
+        try {
+            Intent service = new Intent(this, NotificationService.class);
+            startService(service);
+            Log.d(TAG, "NotificationService ensure started for testControlBroadcasts");
+        } catch (Throwable t) {
+            Log.w(TAG, "Could not start NotificationService: " + t.getMessage());
+        }
+
+        new Thread(() -> {
+            try {
+                // Pequeña espera para garantizar registro
+                Thread.sleep(300);
+
+                Intent findMedia = new Intent("com.tgwgroup.MiRearScreenSwitcher.FIND_AND_SHOW_MEDIA_NOTIFICATION");
+                findMedia.setPackage(getPackageName());
+                sendBroadcast(findMedia);
+                Log.d(TAG, "Sent FIND_AND_SHOW_MEDIA_NOTIFICATION");
+
+                Thread.sleep(300);
+
+                Intent musicEnabled = new Intent("com.tgwgroup.MiRearScreenSwitcher.MUSIC_SERVICE_ENABLED");
+                musicEnabled.setPackage(getPackageName());
+                sendBroadcast(musicEnabled);
+                Log.d(TAG, "Sent MUSIC_SERVICE_ENABLED");
+
+                Thread.sleep(300);
+
+                Intent musicDisabled = new Intent("com.tgwgroup.MiRearScreenSwitcher.MUSIC_SERVICE_DISABLED");
+                musicDisabled.setPackage(getPackageName());
+                sendBroadcast(musicDisabled);
+                Log.d(TAG, "Sent MUSIC_SERVICE_DISABLED");
+
+                Thread.sleep(300);
+
+                Intent pausePlay = new Intent("com.tgwgroup.MiRearScreenSwitcher.PAUSE_AND_PLAY_MEDIA");
+                pausePlay.setPackage(getPackageName());
+                sendBroadcast(pausePlay);
+                Log.d(TAG, "Sent PAUSE_AND_PLAY_MEDIA");
+            } catch (InterruptedException ie) {
+                Thread.currentThread().interrupt();
+            } catch (Exception e) {
+                Log.e(TAG, "Error sending test control broadcasts", e);
+            }
+        }).start();
     }
     
     @Override
