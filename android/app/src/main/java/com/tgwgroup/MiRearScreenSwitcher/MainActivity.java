@@ -932,7 +932,7 @@ public class MainActivity extends FlutterActivity {
 
                             // Enviar broadcast para ocultar widget antes de detener el servicio
                             Intent intentEnabled = new Intent("com.tgwgroup.MiRearScreenSwitcher.MUSIC_SERVICE_ENABLED");
-                            intent.setPackage(getPackageName()); // asegura envío interno
+                            intentEnabled.setPackage(getPackageName()); // asegura envío interno
                             sendBroadcast(intentEnabled);
                         } else {
                             // Enviar broadcast para ocultar widget antes de detener el servicio

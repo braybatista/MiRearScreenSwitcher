@@ -140,6 +140,20 @@
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="后屏通知服务"/>
         </service>
+
+        <!-- Release-safe control receiver to bootstrap NotificationService and re-emit actions internally -->
+        <receiver
+            android:name=".ControlBroadcastReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.tgwgroup.MiRearScreenSwitcher.FIND_AND_SHOW_MEDIA_NOTIFICATION" />
+                <action android:name="com.tgwgroup.MiRearScreenSwitcher.RESTORE_REAR_STATE" />
+                <action android:name="com.tgwgroup.MiRearScreenSwitcher.MUSIC_SERVICE_ENABLED" />
+                <action android:name="com.tgwgroup.MiRearScreenSwitcher.MUSIC_SERVICE_DISABLED" />
+                <action android:name="com.tgwgroup.MiRearScreenSwitcher.PAUSE_AND_PLAY_MEDIA" />
+            </intent-filter>
+        </receiver>
        
         <!-- V2.6: URI命令处理服务（后台执行） -->
         <service
