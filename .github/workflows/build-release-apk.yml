@@ -62,6 +62,39 @@ jobs:
           echo "Extracted version: $VER"
           echo "version=${VER}" >> $GITHUB_OUTPUT
 
+      - name: Fail if tag already exists
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="v${{ steps.version.outputs.version }}"
+          echo "Checking if tag $TAG exists"
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/${{ github.repository }}/git/refs/tags/${TAG})
+          if [ "$STATUS" = "200" ]; then
+            echo "Tag $TAG already exists. Please bump version before merging."
+            exit 1
+          else
+            echo "Tag $TAG not found. Proceeding."
+          fi
+
+      - name: Bump pubspec.yaml version to extracted
+        run: |
+          VER="${{ steps.version.outputs.version }}"
+          echo "Bumping pubspec.yaml version to ${VER}"
+          # Replace the version line; keeps build metadata if present
+          sed -i -E "s/^version: .*/version: ${VER}/" pubspec.yaml
+
+      - name: Commit version bump (skip CI)
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add pubspec.yaml
+          # Use [skip ci] to avoid triggering other workflows
+          git commit -m "chore: bump app version to v${{ steps.version.outputs.version }} [skip ci]" || echo "No changes to commit"
+          git push origin HEAD:${{ github.ref_name }}
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
