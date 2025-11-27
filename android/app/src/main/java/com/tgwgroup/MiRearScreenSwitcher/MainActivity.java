@@ -908,6 +908,7 @@ public class MainActivity extends FlutterActivity {
                         // V2.5: inicio de servicio de musica
                         try {
                             Intent intent = new Intent("com.tgwgroup.MiRearScreenSwitcher.FIND_AND_SHOW_MEDIA_NOTIFICATION");
+                            intent.setPackage(getPackageName()); // asegura envío interno
                             sendBroadcast(intent);
 
                             result.success(true);
@@ -923,21 +924,22 @@ public class MainActivity extends FlutterActivity {
                         boolean enabled = (boolean) call.argument("enabled");
 
                         SharedPreferences prefs = getSharedPreferences("mrss_settings", MODE_PRIVATE);
-                        //prefs.edit().putBoolean("notification_music_service_enabled", enabled).apply();
 
                         if (enabled) {
                             Intent intent = new Intent(this, NotificationService.class);
                             startService(intent);
                             Log.d(TAG, "[BABZ] NotificationMusicService started");
-                            
-                            // Enviar broadcast para mostrar widget persistente
-                            Intent broadcastIntent = new Intent("com.tgwgroup.MiRearScreenSwitcher.MUSIC_SERVICE_ENABLED");
-                            sendBroadcast(broadcastIntent);
+
+                            // Enviar broadcast para ocultar widget antes de detener el servicio
+                            Intent intentEnabled = new Intent("com.tgwgroup.MiRearScreenSwitcher.MUSIC_SERVICE_ENABLED");
+                            intent.setPackage(getPackageName()); // asegura envío interno
+                            sendBroadcast(intentEnabled);
                         } else {
                             // Enviar broadcast para ocultar widget antes de detener el servicio
-                            Intent broadcastIntent = new Intent("com.tgwgroup.MiRearScreenSwitcher.MUSIC_SERVICE_DISABLED");
-                            sendBroadcast(broadcastIntent);
-                            
+                            Intent intentDisabled = new Intent("com.tgwgroup.MiRearScreenSwitcher.MUSIC_SERVICE_DISABLED");
+                            intentDisabled.setPackage(getPackageName()); // asegura envío interno
+                            sendBroadcast(intentDisabled);
+
                             Intent intent = new Intent(this, NotificationService.class);
                             stopService(intent);
                             Log.d(TAG, "[BABZ] NotificationMusicService stopped");

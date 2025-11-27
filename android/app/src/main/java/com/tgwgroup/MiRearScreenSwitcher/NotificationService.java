@@ -43,6 +43,7 @@ import android.util.Log;
 import java.util.HashSet;
 import java.util.Set;
 
+import io.flutter.BuildConfig;
 import rikka.shizuku.Shizuku;
 
 /**
@@ -81,36 +82,42 @@ public class NotificationService extends NotificationListenerService {
 
             switch (action) {
                 case "com.tgwgroup.MiRearScreenSwitcher.FIND_AND_SHOW_MEDIA_NOTIFICATION":
-                    Log.d(TAG, "Received request to find and show media notification");
+                    Log.d(TAG, "[controlReceiver onReceive FIND_AND_SHOW_MEDIA_NOTIFICATION BABZ] Received request to find and show media notification");
                     findAndShowCurrentMediaNotification();
                     break;
                 case "com.tgwgroup.MiRearScreenSwitcher.RESTORE_REAR_STATE":
-                    Log.d(TAG, "Received request to restore rear state");
+                    Log.d(TAG, "[controlReceiver onReceive RESTORE_REAR_STATE BABZ] Received request to restore rear state");
                     restoreRearScreenLauncher();
                     break;
                 case "com.tgwgroup.MiRearScreenSwitcher.MUSIC_SERVICE_ENABLED":
-                    Log.d(TAG, "🎵 Music service enabled - showing persistent widget");
+                    Log.d(TAG, "🎵 [controlReceiver onReceive MUSIC_SERVICE_ENABLED BABZ] Music service enabled - showing persistent widget");
                     loadNotificationServiceSettings();
                     if (musicServiceEnabled) {
                         findAndShowCurrentMediaNotification();
                     }
                     break;
                 case "com.tgwgroup.MiRearScreenSwitcher.MUSIC_SERVICE_DISABLED":
-                    Log.d(TAG, "🚫 Music service disabled - hiding widget");
+                    Log.d(TAG, "🚫 [controlReceiver onReceive MUSIC_SERVICE_DISABLED BABZ] Music service disabled - hiding widget");
                     loadNotificationServiceSettings();
                     hideMusicWidget();
+                    break;
+                case "com.tgwgroup.MiRearScreenSwitcher.PAUSE_AND_PLAY_MEDIA":
+                    Log.d(TAG, "[controlReceiver onReceive PAUSE_AND_PLAY_MEDIA BABZ] Received request to pause and play media");
+                    loadNotificationServiceSettings();
+                    if (musicServiceEnabled) {
+                        findAndShowCurrentMediaNotification();
+                    }
                     break;
             }
         }
     };
-
 
     // 广播接收器：监听设置重新加载
     private BroadcastReceiver settingsReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             if ("com.tgwgroup.MiRearScreenSwitcher.RELOAD_NOTIFICATION_SETTINGS".equals(intent.getAction())) {
-                Log.d(TAG, "🔄 收到重新加载设置的广播");
+                Log.d(TAG, "[settingsReceiver onReceive BABZ] 🔄 收到重新加载设置的广播");
                 loadNotificationServiceSettings(); // 重新加载开关状态
                 loadSettings(); // 重新加载其他设置
             }
@@ -166,45 +173,6 @@ public class NotificationService extends NotificationListenerService {
             bindTaskService();
         }, 1000);
     };
-
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        Log.d(TAG, "🟢 NotificationService created");
-        // 保存实例
-        instance = this;
-        // 初始化SharedPreferences
-        prefs = getSharedPreferences("mrss_settings", Context.MODE_PRIVATE);
-
-        // 注册广播接收器（监听设置变化）
-        IntentFilter filter = new IntentFilter("com.tgwgroup.MiRearScreenSwitcher.RELOAD_NOTIFICATION_SETTINGS");
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(settingsReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
-        } else {
-            registerReceiver(settingsReceiver, filter);
-        }
-
-        Log.d(TAG, "✓ 广播接收器已注册");
-
-        // 添加Shizuku监听器
-        Shizuku.addBinderReceivedListenerSticky(binderReceivedListener);
-        Shizuku.addBinderDeadListener(binderDeadListener);
-
-        // 绑定TaskService
-        bindTaskService();
-
-        // V2.4: 加载通知服务开关状态
-        Log.d(TAG, "� 开始加载通知服务开关状态...");
-        loadNotificationServiceSettings();
-        Log.d(TAG, "� 通知服务开关状态加载完成: " + serviceEnabled);
-
-        // 启动为前台服务，防止被系统杀死
-        RearScreenKeeperService service = new RearScreenKeeperService();
-        startForeground(NOTIFICATION_ID, service.createServiceNotification(this));
-        Log.d(TAG, "✓ 前台服务已启动");
-
-        loadSettings();
-    }
 
     private void bindTaskService() {
         try {
@@ -279,8 +247,116 @@ public class NotificationService extends NotificationListenerService {
     }
 
     @Override
+    public void onCreate() {
+        super.onCreate();
+        Log.d(TAG, "[onCreate BABZ] 🟢 NotificationService created");
+        // 保存实例
+        instance = this;
+        // 初始化SharedPreferences
+        prefs = getSharedPreferences("mrss_settings", Context.MODE_PRIVATE);
+
+        // 注册广播接收器（监听设置变化）
+        IntentFilter filter = new IntentFilter("com.tgwgroup.MiRearScreenSwitcher.RELOAD_NOTIFICATION_SETTINGS");
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(settingsReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
+        } else {
+            registerReceiver(settingsReceiver, filter);
+        }
+
+        // 注册控制广播接收器（用于音乐控制与还原背屏等）
+        IntentFilter controlFilter = new IntentFilter();
+        controlFilter.addAction("com.tgwgroup.MiRearScreenSwitcher.FIND_AND_SHOW_MEDIA_NOTIFICATION");
+        controlFilter.addAction("com.tgwgroup.MiRearScreenSwitcher.RESTORE_REAR_STATE");
+        controlFilter.addAction("com.tgwgroup.MiRearScreenSwitcher.MUSIC_SERVICE_ENABLED");
+        controlFilter.addAction("com.tgwgroup.MiRearScreenSwitcher.MUSIC_SERVICE_DISABLED");
+        controlFilter.addAction("com.tgwgroup.MiRearScreenSwitcher.PAUSE_AND_PLAY_MEDIA");
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            // DEBUG 构建下导出以允许 adb shell 测试；Release 下保持不导出提升安全性
+            if (BuildConfig.DEBUG) {
+                registerReceiver(controlReceiver, controlFilter, Context.RECEIVER_EXPORTED);
+                Log.d(TAG, "controlReceiver registered with RECEIVER_EXPORTED (DEBUG for adb testing)");
+            } else {
+                registerReceiver(controlReceiver, controlFilter, Context.RECEIVER_NOT_EXPORTED);
+                Log.d(TAG, "controlReceiver registered with RECEIVER_NOT_EXPORTED (Release secure mode)");
+            }
+        } else {
+            registerReceiver(controlReceiver, controlFilter);
+            Log.d(TAG, "controlReceiver registered (pre-API33)");
+        }
+
+        Log.d(TAG, "✓ 广播接收器已注册（settings, control）");
+
+        // 添加Shizuku监听器
+        Shizuku.addBinderReceivedListenerSticky(binderReceivedListener);
+        Shizuku.addBinderDeadListener(binderDeadListener);
+
+        // 绑定TaskService
+        bindTaskService();
+
+        // V2.4: 加载通知服务开关状态
+        Log.d(TAG, "� 开始加载通知服务开关状态...");
+        loadNotificationServiceSettings();
+        Log.d(TAG, "� 通知服务开关状态加载完成: " + serviceEnabled);
+
+        // 启动为前台服务，防止被系统杀死
+        RearScreenKeeperService service = new RearScreenKeeperService();
+        startForeground(NOTIFICATION_ID, service.createServiceNotification(this));
+        Log.d(TAG, "✓ 前台服务已启动");
+
+        loadSettings();
+    }
+
+    @Override
+    public void onListenerConnected() {
+        super.onListenerConnected();
+        Log.d(TAG, "X NotificationListener connected");
+        loadSettings();
+        Log.d(TAG, "✓ 通知监听器已就绪");
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.d(TAG, "� NotificationService destroyed");
+
+        // 注销广播接收器
+        try {
+            unregisterReceiver(settingsReceiver);
+            unregisterReceiver(controlReceiver);
+            Log.d(TAG, "✓ 广播接收器已注销");
+        } catch (Exception e) {
+            Log.w(TAG, "Failed to unregister receiver", e);
+        }
+
+        // 移除Shizuku监听器
+        try {
+            Shizuku.removeBinderReceivedListener(binderReceivedListener);
+            Shizuku.removeBinderDeadListener(binderDeadListener);
+        } catch (Exception e) {
+            Log.w(TAG, "Failed to remove Shizuku listeners", e);
+        }
+
+        // 解绑TaskService
+        try {
+            if (taskService != null) {
+                Shizuku.unbindUserService(serviceArgs, taskServiceConnection, true);
+                taskService = null;
+            }
+        } catch (Exception e) {
+            Log.w(TAG, "Failed to unbind TaskService", e);
+        }
+
+        // 清除实例
+        instance = null;
+
+        stopForeground(true);
+    }
+
+    @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
         super.onNotificationPosted(sbn);
+
+        Log.d(TAG, "[onNotificationPosted BABZ] 🟢 NotificationService posted");
 
         // V2.4: 每次收到通知时重新加载开关状态
         loadNotificationServiceSettings();
@@ -307,7 +383,7 @@ public class NotificationService extends NotificationListenerService {
         super.onNotificationRankingUpdate(rankingMap);
         // Este método se llama cuando las notificaciones se actualizan sin ser removidas
         // Es crucial para detectar cambios en notificaciones de medios (play/pause/etc)
-        Log.d(TAG, "Notification ranking updated - checking for media updates");
+        Log.d(TAG, "[onNotificationRankingUpdate BABZ] Notification ranking updated - checking for media updates");
         
         loadNotificationServiceSettings();
         if (!musicServiceEnabled) return;
@@ -327,6 +403,15 @@ public class NotificationService extends NotificationListenerService {
                 }
             }
         }
+    }
+
+    @Override
+    public void onNotificationRemoved(StatusBarNotification sbn) {
+        super.onNotificationRemoved(sbn);
+        Log.d(TAG, "[onNotificationRemoved BABZ] 🟢 NotificationService removed");
+        Log.d(TAG, sbn.toString());
+        Log.d(TAG, sbn.getPackageName());
+        Log.d(TAG, sbn.getNotification().toString());
     }
 
     /**
@@ -468,14 +553,46 @@ public class NotificationService extends NotificationListenerService {
 
             loadSettings();
 
-            NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-            if (followDndMode && nm != null && nm.getCurrentInterruptionFilter() != NotificationManager.INTERRUPTION_FILTER_ALL) {
-                if (notification.extras.getParcelable(Notification.EXTRA_MEDIA_SESSION) == null) return;
-            }
-
-            android.app.KeyguardManager km = (android.app.KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
+            /* android.app.KeyguardManager km = (android.app.KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
             if (onlyWhenLocked && km != null && !km.isKeyguardLocked()) {
                 if (notification.extras.getParcelable(Notification.EXTRA_MEDIA_SESSION) == null) return;
+            } */
+
+            /*NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            if (followDndMode && nm != null && nm.getCurrentInterruptionFilter() != NotificationManager.INTERRUPTION_FILTER_ALL) {
+                if (notification.extras.getParcelable(Notification.EXTRA_MEDIA_SESSION) == null) return;
+            }*/
+
+            // 检查服务是否启用
+            if (!musicServiceEnabled) {
+                Log.d(TAG, "⏭️ 通知服务未启用，跳过");
+                return;
+            }
+
+            // 检查系统勿扰模式
+            if (followDndMode) {
+                try {
+                    android.app.NotificationManager nm = (android.app.NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                    if (nm != null && nm.getCurrentInterruptionFilter() != android.app.NotificationManager.INTERRUPTION_FILTER_ALL) {
+                        Log.d(TAG, "⏭️ 系统勿扰模式已开启，跳过通知动画");
+                        return;
+                    }
+                } catch (Exception e) {
+                    Log.w(TAG, "检查勿扰模式失败: " + e.getMessage());
+                }
+            }
+
+            // 检查是否仅在锁屏时通知
+            if (onlyWhenLocked) {
+                try {
+                    android.app.KeyguardManager km = (android.app.KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
+                    if (km != null && !km.isKeyguardLocked()) {
+                        Log.d(TAG, "⏭️ 当前未锁屏，仅锁屏通知模式已开启，跳过");
+                        return;
+                    }
+                } catch (Exception e) {
+                    Log.w(TAG, "检查锁屏状态失败: " + e.getMessage());
+                }
             }
 
             Log.d(TAG, "Media notification from " + source + ": " + sbn.getPackageName());
@@ -637,8 +754,7 @@ public class NotificationService extends NotificationListenerService {
                     foregroundPackage = mainForegroundApp.split("/")[0];
                 }
                 forceDirectRearDueToSameApp = foregroundPackage.equals(packageName);
-                Log.d(TAG, String.format("� 锁屏同包检查: 主屏前台=[%s] vs 通知包名=[%s] -> %s",
-                        foregroundPackage, packageName, forceDirectRearDueToSameApp ? "匹配(直接背屏)" : "不匹配(占位策略)"));
+                Log.d(TAG, String.format("� 锁屏同包检查: 主屏前台=[%s] vs 通知包名=[%s] -> %s", foregroundPackage, packageName, forceDirectRearDueToSameApp ? "匹配(直接背屏)" : "不匹配(占位策略)"));
             }
 
             // ✅ 统一策略：无论锁屏与否，都直接在背屏启动（避免DPI不匹配问题）
@@ -758,6 +874,10 @@ public class NotificationService extends NotificationListenerService {
             Log.e(TAG, "TaskService is not available. Cannot show music widget.");
             return;
         }
+
+        // 锁屏状态检查
+        android.app.KeyguardManager km = (android.app.KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
+        boolean isLocked = km != null && km.isKeyguardLocked();
         
         PowerManager.WakeLock screenWakeLock = null;
         try {
@@ -906,51 +1026,5 @@ public class NotificationService extends NotificationListenerService {
         } catch (Throwable t) {
             Log.w(TAG, "Failed to release wakelock: " + t.getMessage());
         }
-    }
-
-    @Override
-    public void onListenerConnected() {
-        super.onListenerConnected();
-        Log.d(TAG, "� NotificationListener connected");
-        loadSettings();
-        Log.d(TAG, "✓ 通知监听器已就绪");
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        Log.d(TAG, "� NotificationService destroyed");
-
-        // 注销广播接收器
-        try {
-            unregisterReceiver(settingsReceiver);
-            unregisterReceiver(controlReceiver);
-            Log.d(TAG, "✓ 广播接收器已注销");
-        } catch (Exception e) {
-            Log.w(TAG, "Failed to unregister receiver", e);
-        }
-
-        // 移除Shizuku监听器
-        try {
-            Shizuku.removeBinderReceivedListener(binderReceivedListener);
-            Shizuku.removeBinderDeadListener(binderDeadListener);
-        } catch (Exception e) {
-            Log.w(TAG, "Failed to remove Shizuku listeners", e);
-        }
-
-        // 解绑TaskService
-        try {
-            if (taskService != null) {
-                Shizuku.unbindUserService(serviceArgs, taskServiceConnection, true);
-                taskService = null;
-            }
-        } catch (Exception e) {
-            Log.w(TAG, "Failed to unbind TaskService", e);
-        }
-
-        // 清除实例
-        instance = null;
-
-        stopForeground(true);
     }
 }

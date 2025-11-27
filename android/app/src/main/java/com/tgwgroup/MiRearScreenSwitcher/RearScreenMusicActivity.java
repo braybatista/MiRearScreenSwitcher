@@ -32,10 +32,12 @@ public class RearScreenMusicActivity extends Activity {
     private ImageView playPauseButton;
     private ImageView nextButton;
     private ImageView closeButton;
+    private ImageView lockButton; // Added lock button
     private RelativeLayout rootLayout;
 
     private MediaController mediaController;
-    
+    private boolean isLocked = false; // Added lock state
+
     private android.content.BroadcastReceiver closeReceiver = new android.content.BroadcastReceiver() {
         @Override
         public void onReceive(android.content.Context context, android.content.Intent intent) {
@@ -97,6 +99,7 @@ public class RearScreenMusicActivity extends Activity {
         playPauseButton = findViewById(R.id.music_play_pause_button);
         nextButton = findViewById(R.id.music_next_button);
         closeButton = findViewById(R.id.close_button);
+        lockButton = findViewById(R.id.lock_button); // Find lock button
         rootLayout = findViewById(R.id.root_layout);
 
         // Activate marquee for title
@@ -108,11 +111,11 @@ public class RearScreenMusicActivity extends Activity {
 
         // Set click listeners
         prevButton.setOnClickListener(v -> {
-            if (mediaController != null) mediaController.getTransportControls().skipToPrevious();
+            if (mediaController != null && !isLocked) mediaController.getTransportControls().skipToPrevious();
         });
 
         playPauseButton.setOnClickListener(v -> {
-            if (mediaController != null) {
+            if (mediaController != null && !isLocked) {
                 if (mediaController.getPlaybackState().getState() == PlaybackState.STATE_PLAYING) {
                     mediaController.getTransportControls().pause();
                 } else {
@@ -122,11 +125,17 @@ public class RearScreenMusicActivity extends Activity {
         });
 
         nextButton.setOnClickListener(v -> {
-            if (mediaController != null) mediaController.getTransportControls().skipToNext();
+            if (mediaController != null && !isLocked) mediaController.getTransportControls().skipToNext();
         });
 
-        closeButton.setOnClickListener(v -> finishAndRestore());
+        closeButton.setOnClickListener(v -> {
+            if(!isLocked) finishAndRestore();
+        });
         
+        lockButton.setOnClickListener(v -> {
+            toggleLockState();
+        }); // Set listener for lock button
+
         // Registrar receptor para cerrar cuando se desactive el servicio
         android.content.IntentFilter closeFilter = new android.content.IntentFilter("com.tgwgroup.MiRearScreenSwitcher.CLOSE_MUSIC_WIDGET");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -134,6 +143,16 @@ public class RearScreenMusicActivity extends Activity {
         } else {
             registerReceiver(closeReceiver, closeFilter);
         }
+    }
+
+    private void toggleLockState() {
+        isLocked = !isLocked;
+        lockButton.setImageResource(isLocked ? R.drawable.ic_media_unblock : R.drawable.ic_media_block);
+        /*if (isLocked) {
+            lockButton.setImageResource(R.drawable.ic_media_unblock);
+        } else {
+            lockButton.setImageResource(R.drawable.ic_media_block);
+        }*/
     }
 
     @Override
@@ -235,9 +254,9 @@ public class RearScreenMusicActivity extends Activity {
 
     private void updatePlayPauseButton(boolean isPlaying) {
         if (isPlaying) {
-            playPauseButton.setImageResource(android.R.drawable.ic_media_pause);
+            playPauseButton.setImageResource(R.drawable.ic_media_pause);
         } else {
-            playPauseButton.setImageResource(android.R.drawable.ic_media_play);
+            playPauseButton.setImageResource(R.drawable.ic_media_play);
         }
     }
 
