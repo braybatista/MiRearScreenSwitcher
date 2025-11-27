@@ -305,6 +305,17 @@ public class MainActivity extends FlutterActivity {
         methodChannel = new MethodChannel(flutterEngine.getDartExecutor().getBinaryMessenger(), CHANNEL);
         methodChannel.setMethodCallHandler((call, result) -> {
                 switch (call.method) {
+                    case "testControlBroadcasts": {
+                        // Lanzar secuencia de broadcasts para pruebas rápidas
+                        try {
+                            testControlBroadcasts();
+                            result.success(true);
+                        } catch (Exception e) {
+                            Log.e(TAG, "Failed to test control broadcasts", e);
+                            result.error("TEST_FAILED", e.getMessage(), null);
+                        }
+                        break;
+                    }
                     case "checkShizuku": {
                         try {
                             boolean isRunning = Shizuku.pingBinder();
@@ -956,6 +967,58 @@ public class MainActivity extends FlutterActivity {
                         result.notImplemented();
                 }
             });
+    }
+
+    /**
+     * Emite en secuencia los intents de control y arranca el NotificationService si es necesario.
+     * Útil para pruebas desde Flutter mediante MethodChannel: "testControlBroadcasts".
+     */
+    public void testControlBroadcasts() {
+        // Asegurar que el servicio esté activo para registrar receivers dinámicos
+        try {
+            Intent service = new Intent(this, NotificationService.class);
+            startService(service);
+            Log.d(TAG, "NotificationService ensure started for testControlBroadcasts");
+        } catch (Throwable t) {
+            Log.w(TAG, "Could not start NotificationService: " + t.getMessage());
+        }
+
+        new Thread(() -> {
+            try {
+                // Pequeña espera para garantizar registro
+                Thread.sleep(300);
+
+                Intent findMedia = new Intent("com.tgwgroup.MiRearScreenSwitcher.FIND_AND_SHOW_MEDIA_NOTIFICATION");
+                findMedia.setPackage(getPackageName());
+                sendBroadcast(findMedia);
+                Log.d(TAG, "Sent FIND_AND_SHOW_MEDIA_NOTIFICATION");
+
+                Thread.sleep(300);
+
+                Intent musicEnabled = new Intent("com.tgwgroup.MiRearScreenSwitcher.MUSIC_SERVICE_ENABLED");
+                musicEnabled.setPackage(getPackageName());
+                sendBroadcast(musicEnabled);
+                Log.d(TAG, "Sent MUSIC_SERVICE_ENABLED");
+
+                Thread.sleep(300);
+
+                Intent musicDisabled = new Intent("com.tgwgroup.MiRearScreenSwitcher.MUSIC_SERVICE_DISABLED");
+                musicDisabled.setPackage(getPackageName());
+                sendBroadcast(musicDisabled);
+                Log.d(TAG, "Sent MUSIC_SERVICE_DISABLED");
+
+                Thread.sleep(300);
+
+                Intent pausePlay = new Intent("com.tgwgroup.MiRearScreenSwitcher.PAUSE_AND_PLAY_MEDIA");
+                pausePlay.setPackage(getPackageName());
+                sendBroadcast(pausePlay);
+                Log.d(TAG, "Sent PAUSE_AND_PLAY_MEDIA");
+            } catch (InterruptedException ie) {
+                Thread.currentThread().interrupt();
+            } catch (Exception e) {
+                Log.e(TAG, "Error sending test control broadcasts", e);
+            }
+        }).start();
     }
     
     @Override
