@@ -39,9 +39,13 @@ import android.os.PowerManager;
 import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
 import android.util.Log;
-
+import android.widget.Toast;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+
+import com.tgwgroup.MiRearScreenSwitcher.misc.Constants;
 
 import io.flutter.BuildConfig;
 import rikka.shizuku.Shizuku;
@@ -549,19 +553,17 @@ public class NotificationService extends NotificationListenerService {
             String packageName = sbn.getPackageName();
             Notification notification = sbn.getNotification();
 
+            if (Constants.EXCLUDED_MUSIC_PACKAGES.contains(packageName)) {
+                new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                    Toast.makeText(getApplicationContext(), R.string.native_player_warning, Toast.LENGTH_SHORT).show();
+                });
+                hideMusicWidget();
+                return;
+            }
+
             if (packageName.equals(getPackageName())) return;
 
             loadSettings();
-
-            /* android.app.KeyguardManager km = (android.app.KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
-            if (onlyWhenLocked && km != null && !km.isKeyguardLocked()) {
-                if (notification.extras.getParcelable(Notification.EXTRA_MEDIA_SESSION) == null) return;
-            } */
-
-            /*NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-            if (followDndMode && nm != null && nm.getCurrentInterruptionFilter() != NotificationManager.INTERRUPTION_FILTER_ALL) {
-                if (notification.extras.getParcelable(Notification.EXTRA_MEDIA_SESSION) == null) return;
-            }*/
 
             // 检查服务是否启用
             if (!musicServiceEnabled) {
@@ -992,6 +994,22 @@ public class NotificationService extends NotificationListenerService {
             
             // Restaurar launcher
             restoreRearScreenLauncher();
+
+            // Limpiar caché de datos de música para evitar estado residual
+            try {
+                MusicNotificationCache.getInstance().clear();
+                Log.d(TAG, "🧹 Music widget cache cleared");
+            } catch (Throwable t) {
+                Log.w(TAG, "Failed to clear music cache: " + t.getMessage());
+            }
+
+            // Reanudar monitoreo de RearScreenKeeperService (había sido pausado al mostrar el widget)
+            try {
+                RearScreenKeeperService.resumeMonitoring();
+                Log.d(TAG, "▶️ RearScreenKeeperService monitoring resumed");
+            } catch (Throwable t) {
+                Log.w(TAG, "Failed to resume monitoring: " + t.getMessage());
+            }
             
             Log.d(TAG, "✓ Music widget hidden");
         } catch (Exception e) {
