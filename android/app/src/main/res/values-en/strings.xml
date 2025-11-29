@@ -87,4 +87,5 @@
     <!-- NotificationService -->
     <string name="notification_privacy_mode_enabled">Privacy mode enabled</string>
     <string name="notification_new_message">You have a new message</string>
+    <string name="app_has_builtin_player">This app has a built-in player and does not support other players.</string>
 </resources>

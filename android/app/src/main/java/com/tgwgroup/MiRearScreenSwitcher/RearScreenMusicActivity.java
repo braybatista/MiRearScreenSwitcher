@@ -42,6 +42,14 @@ public class RearScreenMusicActivity extends Activity {
         @Override
         public void onReceive(android.content.Context context, android.content.Intent intent) {
             if ("com.tgwgroup.MiRearScreenSwitcher.CLOSE_MUSIC_WIDGET".equals(intent.getAction())) {
+                // Always clear lock before closing
+                if (isLocked) {
+                    isLocked = false;
+                    if (lockButton != null) {
+                        lockButton.setImageResource(R.drawable.ic_media_block);
+                    }
+                    Log.d(TAG, "Lock state cleared via CLOSE_MUSIC_WIDGET broadcast");
+                }
                 Log.d(TAG, "Received close broadcast - finishing activity");
                 finish();
             }
@@ -129,7 +137,13 @@ public class RearScreenMusicActivity extends Activity {
         });
 
         closeButton.setOnClickListener(v -> {
-            if(!isLocked) finishAndRestore();
+            // Always unlock then close, regardless of prior lock state
+            if (isLocked) {
+                isLocked = false;
+                lockButton.setImageResource(R.drawable.ic_media_block);
+                Log.d(TAG, "Lock state cleared via close button");
+            }
+            finishAndRestore();
         });
         
         lockButton.setOnClickListener(v -> {

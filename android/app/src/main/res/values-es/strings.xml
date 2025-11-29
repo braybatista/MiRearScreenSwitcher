@@ -87,4 +87,5 @@
     <!-- NotificationService -->
     <string name="notification_privacy_mode_enabled">Modo privacidad activado</string>
     <string name="notification_new_message">Tienes un nuevo mensaje</string>
+    <string name="native_player_warning">Esta aplicación tiene un reproductor nativo y no es compatible</string>
 </resources>

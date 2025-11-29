@@ -1,6 +1,9 @@
 
 package com.tgwgroup.MiRearScreenSwitcher.misc;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class Constants {
     // RearScreenshotTileService
     public static final String REAR_SCREENSHOT_TILE_SERVICE_NOT_READY = Utils.getLocalizedString("✗ Service not ready", "✗ Servicio no listo", "✗ 服务未就绪");
@@ -14,4 +17,9 @@ public class Constants {
 
     public static final String REAR_SCREEN_KEEPER_SERVICE_NOTIFICATION_CHANNEL_NAME = Utils.getLocalizedString("MRSS Core Service", "Servicio Principal de MRSS", "MRSS内核服务");
     public static final String REAR_SCREEN_KEEPER_SERVICE_NOTIFICATION_CONTENT_TEXT = Utils.getLocalizedString("MRSS is currently running", "MRSS se está ejecutando actualmente", "MRSS目前正在运行");
+
+    public static final List<String> EXCLUDED_MUSIC_PACKAGES = Arrays.asList(
+            "com.spotify.music",
+            "com.miui.player"
+    );
 }

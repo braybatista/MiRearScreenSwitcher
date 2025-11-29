@@ -87,4 +87,5 @@
     <!-- NotificationService -->
     <string name="notification_privacy_mode_enabled">隐私模式已启用</string>
     <string name="notification_new_message">你有一条新消息</string>
+    <string name="native_player_warning">此應用程式自備播放器，不支援其他播放器。</string>
 </resources>

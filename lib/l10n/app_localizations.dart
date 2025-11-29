@@ -26,12 +26,7 @@ class AppLocalizations {
   }
 
   String translate(String key) {
-    // Try full locale first (e.g. zh_CN)
-    String result = AppStrings.get(key, fullLocale);
-
-    // If result is the key itself (meaning not found or fallback to en happened inside AppStrings but we want to be sure),
-    // we can try just language code if needed, but AppStrings logic handles fallback to EN.
-    // However, for zh_CN vs zh_TW, we need to be careful.
+    // Chinese special handling for regional variants; fallback uses language code otherwise.
 
     // Special handling for Chinese
     if (languageCode == 'zh') {
