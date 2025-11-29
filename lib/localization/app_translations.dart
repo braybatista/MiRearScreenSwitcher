@@ -77,6 +77,10 @@ class AppTranslations {
         // Misc
         'rear_screen_notifications': '📢 背屏通知',
         'rear_screen_music_notifications': '📀 背屏音乐通知',
+        'call_service': '📞 通话服务',
+        'calls_service_toggled': '通话服务已%s',
+        'call_service_started': '通话服务已启动',
+        'call_service_start_failed': '启动通话服务失败: %s',
         'test_notification': '📢 测试通知',
         'burnin_warning': '警告：可能导致烧屏和额外耗电',
         'select_apps': '选择应用',
@@ -216,6 +220,10 @@ class AppTranslations {
 
         'rear_screen_notifications': '📢 Rear Screen Notifications',
         'rear_screen_music_notifications': '📀 Rear Screen Music Notifications',
+        'call_service': '📞 Call Service',
+        'calls_service_toggled': 'Call service is %s',
+        'call_service_started': 'Call service started',
+        'call_service_start_failed': 'Failed to start call service: %s',
         'test_notification': '📢 Test Notification',
         'burnin_warning': 'Warning: May cause screen burn-in and extra power consumption',
         'select_apps': 'Select apps',
@@ -357,6 +365,10 @@ class AppTranslations {
 
         'rear_screen_notifications': '📢 Notificaciones Aplicaciones',
         'rear_screen_music_notifications': '📀 Notification de Musica',
+        'call_service': '📞 Servicio de Llamadas',
+        'calls_service_toggled': 'Servicio de llamadas %s',
+        'call_service_started': 'Servicio de llamadas iniciado',
+        'call_service_start_failed': 'Error al iniciar servicio de llamadas: %s',
         'test_notification': '📢 Notificación de prueba',
         'burnin_warning': 'Advertencia: Puede causar marcas en la pantalla y consumo extra',
         'select_apps': 'Seleccionar apps',
@@ -435,7 +447,6 @@ class AppTranslations {
 
   static String get(String key, [String languageCode = 'zh']) {
     final map = translations[languageCode] ?? translations['zh']!;
-    //print("[BABZ] [AppTranslations] [get] key: $key, languageCode: $languageCode, map[key]: ${map[key]}, result: ${map[key] ?? key}");
     return map[key] ?? key;
   }
 

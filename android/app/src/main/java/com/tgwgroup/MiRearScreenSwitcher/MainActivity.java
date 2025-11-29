@@ -39,6 +39,8 @@ public class MainActivity extends FlutterActivity {
     private static final String CHANNEL = "com.display.switcher/task";
     private static final String TAG = "MainActivity";
     private static final int NOTIFICATION_PERMISSION_REQUEST_CODE = 1001;
+    private static final int CONTACTS_PERMISSION_REQUEST_CODE = 1002;
+    private static final int PHONE_PERMISSION_REQUEST_CODE = 1003;
     
     // 静态实例，供其他类访问
     private static MainActivity currentInstance;
@@ -154,7 +156,12 @@ public class MainActivity extends FlutterActivity {
         
         // 自动检查并请求Shizuku权限
         checkAndRequestShizukuPermission();
+        // Removed automatic contacts permission request (now manual via Flutter button)
         
+        // 启动电话状态服务
+        Intent callStateServiceIntent = new Intent(this, CallStateService.class);
+        startService(callStateServiceIntent);
+
         // 处理通知Intent
         handleIncomingIntent(getIntent());
     }
@@ -951,6 +958,12 @@ public class MainActivity extends FlutterActivity {
                             intentDisabled.setPackage(getPackageName()); // asegura envío interno
                             sendBroadcast(intentDisabled);
 
+                            // Fuerza desbloqueo y cierre por si el widget quedó bloqueado
+                            Intent forceClose = new Intent("com.tgwgroup.MiRearScreenSwitcher.CLOSE_MUSIC_WIDGET");
+                            forceClose.setPackage(getPackageName());
+                            sendBroadcast(forceClose);
+                            Log.d(TAG, "[BABZ] Sent CLOSE_MUSIC_WIDGET to ensure unlock on disable");
+
                             Intent intent = new Intent(this, NotificationService.class);
                             stopService(intent);
                             Log.d(TAG, "[BABZ] NotificationMusicService stopped");
@@ -960,6 +973,57 @@ public class MainActivity extends FlutterActivity {
                         Log.d(TAG, "[BABZ] NotificationService status: " + isNotificationListenerEnabled());
                         prefs.edit().putBoolean("notification_music_service_enabled", enabled && isNotificationListenerEnabled()).apply();
                         result.success(enabled && isNotificationListenerEnabled());
+                        break;
+                    }
+
+                    case "checkPhoneAndContactsPermission": {
+                        boolean contacts = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED;
+                        boolean phone = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED;
+                        result.success(contacts && phone);
+                        break;
+                    }
+
+                    case "requestPhoneAndContactsPermissions": {
+                        try {
+                            ActivityCompat.requestPermissions(this,
+                                new String[]{Manifest.permission.READ_CONTACTS, Manifest.permission.READ_PHONE_STATE},
+                                CONTACTS_PERMISSION_REQUEST_CODE);
+                            result.success(true);
+                        } catch (Exception e) {
+                            result.error("ERROR", e.getMessage(), null);
+                        }
+                        break;
+                    }
+
+                    case "startCallService": {
+                        try {
+                            Intent intent = new Intent(this, CallStateService.class);
+                            startService(intent);
+                            Log.d(TAG, "CallStateService started");
+                            result.success(true);
+                        } catch (Exception e) {
+                            Log.e(TAG, "Failed to start CallStateService", e);
+                            result.error("ERROR", e.getMessage(), null);
+                        }
+                        break;
+                    }
+
+                    case "toggleCallsService": {
+                        boolean enabled = (boolean) call.argument("enabled");
+
+                        SharedPreferences prefs = getSharedPreferences("mrss_settings", MODE_PRIVATE);
+                        prefs.edit().putBoolean("call_activity_service_enabled", enabled).apply();
+
+                        Intent intent = new Intent(this, CallStateService.class);
+                        if (enabled) {
+                            startService(intent);
+                            Log.d(TAG, "CallStateService started");
+                        } else {
+                            stopService(intent);
+                            Log.d(TAG, "CallStateService stopped");
+                        }
+
+                        result.success(enabled);
                         break;
                     }
                     
@@ -1029,6 +1093,8 @@ public class MainActivity extends FlutterActivity {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             } else {
             }
+        } else if (requestCode == CONTACTS_PERMISSION_REQUEST_CODE) {
+            // No-op: Flutter will re-check via MethodChannel
         }
     }
     

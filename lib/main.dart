@@ -165,6 +165,8 @@ class _HomePageState extends State<HomePage> {
 
   //V3.1.3: Notification Music Service
   bool _notificationMusicEnabled = false;
+  // V3.1.4: Calls Service
+  bool _callsEnabled = false;
 
   @override
   void initState() {
@@ -459,22 +461,14 @@ class _HomePageState extends State<HomePage> {
     try {
       final prefs = await SharedPreferences.getInstance();
       setState(() {
-        _proximitySensorEnabled =
-            prefs.getBool('proximity_sensor_enabled') ?? true;
-        _chargingAnimationEnabled =
-            prefs.getBool('charging_animation_enabled') ?? true;
-        _chargingAlwaysOnEnabled =
-            prefs.getBool('charging_always_on_enabled') ??
-            false; // V3.5: 加载充电动画常亮开关状态
+        _proximitySensorEnabled = prefs.getBool('proximity_sensor_enabled') ?? true;
+        _chargingAnimationEnabled = prefs.getBool('charging_animation_enabled') ?? true;
+        _chargingAlwaysOnEnabled = prefs.getBool('charging_always_on_enabled') ?? false; // V3.5: 加载充电动画常亮开关状态
         _keepScreenOnEnabled = prefs.getBool('keep_screen_on_enabled') ?? true;
-        _alwaysWakeUpEnabled =
-            prefs.getBool('always_wakeup_enabled') ??
-            false; // V3.5: 加载未投放应用时常亮开关状态
-
-        _notificationEnabled =
-            prefs.getBool('notification_service_enabled') ??
-            false; // V2.4: 加载背屏通知开关状态
+        _alwaysWakeUpEnabled = prefs.getBool('always_wakeup_enabled') ?? false; // V3.5: 加载未投放应用时常亮开关状态
+        _notificationEnabled = prefs.getBool('notification_service_enabled') ?? false; // V2.4: 加载背屏通知开关状态
         _notificationMusicEnabled = prefs.getBool('notification_music_service_enabled') ?? false;
+        _callsEnabled = prefs.getBool('call_activity_service_enabled') ?? false;
       });
 
       // 启动充电服务（如果开关打开）
@@ -493,6 +487,11 @@ class _HomePageState extends State<HomePage> {
       // V3.1.2: NotificationMusicService
       if (_notificationMusicEnabled){
         _startNotificationMusicService();
+      }
+
+      // V3.1.4: Calls Service
+      if (_callsEnabled){
+        _startCallService();
       }
     } catch (e) {
       print(LocalizedText.get('load_settings_failed', [e.toString()]));
@@ -543,6 +542,16 @@ class _HomePageState extends State<HomePage> {
       print(LocalizedText.get('notification_music_service_started'));
     } catch (e) {
       print(LocalizedText.get('notification_music_service_start_failed', [e.toString()]));
+    }
+  }
+
+  // V3.1.4: 启动通话服务
+  Future<void> _startCallService() async {
+    try {
+      await platform.invokeMethod('startCallService');
+      print(LocalizedText.get('call_service_started'));
+    } catch (e) {
+      print(LocalizedText.get('call_service_start_failed', [e.toString()]));
     }
   }
 
@@ -615,6 +624,45 @@ class _HomePageState extends State<HomePage> {
       print(LocalizedText.get('toggle_notification_service_failed', [e.toString()]));
       setState(() {
         _notificationMusicEnabled = false;
+      });
+    }
+  }
+
+  // V3.1.4: Toggle calls service
+  Future<void> _toggleCallsService(bool enabled) async {
+    if (enabled) {
+      final bool hasPermission = await platform.invokeMethod('checkPhoneAndContactsPermission');
+      if (!hasPermission) {
+        try {
+          await platform.invokeMethod('requestPhoneAndContactsPermissions');
+        } catch (e) {}
+        final bool grantedAfter = await platform.invokeMethod('checkPhoneAndContactsPermission');
+        if (!grantedAfter) {
+          try { await platform.invokeMethod('openAppSettings'); } catch (_) {}
+          return;
+        }
+      }
+    }
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('call_activity_service_enabled', enabled);
+
+      final result = await platform.invokeMethod('toggleCallsService', {'enabled': enabled});
+      final bool effective = (result == true);
+
+      if (effective && enabled) {
+        await _startCallService();
+      }
+
+      setState(() {
+        _callsEnabled = effective;
+      });
+      print(LocalizedText.get('calls_service_toggled', [effective ? LocalizedText.get('enabled') : LocalizedText.get('disabled')]));
+    } catch (e) {
+      print('[MRSS] Toggle calls service failed: ' + e.toString());
+      setState(() {
+        _callsEnabled = false;
       });
     }
   }
@@ -1355,6 +1403,48 @@ class _HomePageState extends State<HomePage> {
                 ),
 
                 SizedBox(height: 20),
+
+                // V3.1.4: Call Service
+                CustomPaint(
+                  painter: _SquircleBorderPainter(
+                    radius: _SquircleRadii.large,
+                    color: Colors.white.withOpacity(0.5),
+                    strokeWidth: 1.5,
+                  ),
+                  child: ClipPath(
+                    clipper: _SquircleClipper(cornerRadius: _SquircleRadii.large),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 0, sigmaY: 0),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.25),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  LocalizedText.get('call_service'),
+                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
+                                ),
+                                const Spacer(),
+                                const SizedBox(width: 8),
+                                _GradientToggle(
+                                  value: _callsEnabled,
+                                  onChanged: _toggleCallsService,
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+                SizedBox(height: 20),
                 
                 // 使用教程 - 可点击跳转到酷安帖子
                 CustomPaint(
@@ -1390,30 +1480,30 @@ class _HomePageState extends State<HomePage> {
                               color: Colors.white.withOpacity(0.25),
                             ),
                             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Text(
-                                '📖',
-                                style: TextStyle(fontSize: 20),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                LocalizedText.get('tutorial'),
-                                style: TextStyle(
-                                  color: Colors.black87,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Text(
+                                  '📖',
+                                  style: TextStyle(fontSize: 20),
                                 ),
-                              ),
-                              const SizedBox(width: 4),
-                              Icon(
-                                Icons.open_in_new,
-                                size: 16,
-                                color: Colors.black54,
-                              ),
-                            ],
-                          ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  LocalizedText.get('tutorial'),
+                                  style: TextStyle(
+                                    color: Colors.black87,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Icon(
+                                  Icons.open_in_new,
+                                  size: 16,
+                                  color: Colors.black54,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -1457,39 +1547,39 @@ class _HomePageState extends State<HomePage> {
                               color: Colors.white.withOpacity(0.25),
                             ),
                             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Text(
-                                '👨‍💻',
-                                style: TextStyle(fontSize: 20),
-                              ),
-                              const SizedBox(width: 6),
-                              Image.asset(
-                                'assets/kuan.png',
-                                width: 24,
-                                height: 24,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return const Icon(Icons.person, size: 24, color: Colors.black87);
-                                },
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                LocalizedText.get('author_coolapk'),
-                                style: TextStyle(
-                                  color: Colors.black87,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Text(
+                                  '👨‍💻',
+                                  style: TextStyle(fontSize: 20),
                                 ),
-                              ),
-                              const SizedBox(width: 4),
-                              Icon(
-                                Icons.open_in_new,
-                                size: 16,
-                                color: Colors.black54,
-                              ),
-                            ],
-                          ),
+                                const SizedBox(width: 6),
+                                Image.asset(
+                                  'assets/kuan.png',
+                                  width: 24,
+                                  height: 24,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return const Icon(Icons.person, size: 24, color: Colors.black87);
+                                  },
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  LocalizedText.get('author_coolapk'),
+                                  style: TextStyle(
+                                    color: Colors.black87,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Icon(
+                                  Icons.open_in_new,
+                                  size: 16,
+                                  color: Colors.black54,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -1709,7 +1799,6 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 20),
               ],
             ),
