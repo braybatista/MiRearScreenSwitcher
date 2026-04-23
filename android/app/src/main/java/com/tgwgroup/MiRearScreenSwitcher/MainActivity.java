@@ -157,10 +157,6 @@ public class MainActivity extends FlutterActivity {
         // 自动检查并请求Shizuku权限
         checkAndRequestShizukuPermission();
         // Removed automatic contacts permission request (now manual via Flutter button)
-        
-        // 启动电话状态服务
-        Intent callStateServiceIntent = new Intent(this, CallStateService.class);
-        startService(callStateServiceIntent);
 
         // 处理通知Intent
         handleIncomingIntent(getIntent());
@@ -995,37 +991,6 @@ public class MainActivity extends FlutterActivity {
                         break;
                     }
 
-                    case "startCallService": {
-                        try {
-                            Intent intent = new Intent(this, CallStateService.class);
-                            startService(intent);
-                            Log.d(TAG, "CallStateService started");
-                            result.success(true);
-                        } catch (Exception e) {
-                            Log.e(TAG, "Failed to start CallStateService", e);
-                            result.error("ERROR", e.getMessage(), null);
-                        }
-                        break;
-                    }
-
-                    case "toggleCallsService": {
-                        boolean enabled = (boolean) call.argument("enabled");
-
-                        SharedPreferences prefs = getSharedPreferences("mrss_settings", MODE_PRIVATE);
-                        prefs.edit().putBoolean("call_activity_service_enabled", enabled).apply();
-
-                        Intent intent = new Intent(this, CallStateService.class);
-                        if (enabled) {
-                            startService(intent);
-                            Log.d(TAG, "CallStateService started");
-                        } else {
-                            stopService(intent);
-                            Log.d(TAG, "CallStateService stopped");
-                        }
-
-                        result.success(enabled);
-                        break;
-                    }
                     
                     default:
                         result.notImplemented();

@@ -48,13 +48,6 @@
             android:name=".TaskService"
             android:permission="moe.shizuku.manager.permission.API_V23"
             android:exported="true" />
-
-        <!-- Call State Service -->
-        <service
-            android:name=".CallStateService"
-            android:enabled="true"
-            android:exported="false" />
-        
         <!-- Quick Settings Tile - 切换至背屏 -->
         <service
             android:name=".SwitchToRearTileService"
@@ -242,20 +235,6 @@
             android:excludeFromRecents="true"
             android:launchMode="singleInstance"
             android:taskAffinity="com.tgwgroup.MiRearScreenSwitcher.music"
-            android:theme="@style/Theme.Transparent"
-            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|uiMode|smallestScreenSize|density"
-            android:directBootAware="true"
-            android:showWhenLocked="true"
-            android:turnScreenOn="true">
-            <meta-data android:name="miui.rear.policy" android:value="miui"/>
-        </activity>
-
-        <activity
-            android:name=".RearScreenCallActivity"
-            android:exported="true"
-            android:excludeFromRecents="true"
-            android:launchMode="singleInstance"
-            android:taskAffinity="com.tgwgroup.MiRearScreenSwitcher.call"
             android:theme="@style/Theme.Transparent"
             android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|uiMode|smallestScreenSize|density"
             android:directBootAware="true"
