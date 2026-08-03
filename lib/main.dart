@@ -95,6 +95,7 @@ class _DisplaySwitcherAppState extends State<DisplaySwitcherApp> {
     print("[BABZ] [_DisplaySwitcherAppState][build] _currentLanguage: " + _currentLanguage);
     print("[BABZ] [_DisplaySwitcherAppState][build] isSystemDarkMode: " + isDarkMode.toString());
     print("[BABZ] [_DisplaySwitcherAppState][build] isSystemDarkMode: " + (isDarkMode ? "kGray900" : "kCoral"));
+
     return MaterialApp(
       title: 'MRSS',
       navigatorKey: navigatorKey,
@@ -102,6 +103,44 @@ class _DisplaySwitcherAppState extends State<DisplaySwitcherApp> {
         colorScheme: ColorScheme.fromSeed(seedColor: (isDarkMode ? kGray900 : kCoral)),
         useMaterial3: true,
       ),
+      supportedLocales: const [
+        Locale('en', ''),
+        Locale('zh', 'CN'),
+        Locale('zh', 'TW'),
+      ],
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      localeResolutionCallback: (locale, supportedLocales) {
+        // Only support en, zh_CN, zh_TW. All others fallback to English.
+        if (locale != null) {
+          // Check for exact match
+          for (var supportedLocale in supportedLocales) {
+            if (supportedLocale.languageCode == locale.languageCode &&
+                supportedLocale.countryCode == locale.countryCode) {
+              return supportedLocale;
+            }
+          }
+
+          // Check for language-only match
+          if (locale.languageCode == 'zh') {
+            // For Chinese, check country code
+            if (locale.countryCode == 'TW' || locale.countryCode == 'HK') {
+              return const Locale('zh', 'TW'); // Traditional Chinese
+            } else {
+              return const Locale('zh', 'CN'); // Simplified Chinese (default)
+            }
+          } else if (locale.languageCode == 'en') {
+            return const Locale('en', '');
+          }
+        }
+
+        // Fallback to English for all unsupported languages
+        return const Locale('en', '');
+      },
       home: HomePage(languageCode: _currentLanguage),
       locale: Locale(_currentLanguage)
     );
@@ -279,7 +318,7 @@ class _HomePageState extends State<HomePage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              LocalizedText.get('dpi_set_success', [dpi])
+              LocalizedText.get('toast_dpi_set', [dpi])
             ),
           ),
         );
@@ -291,6 +330,7 @@ class _HomePageState extends State<HomePage> {
           SnackBar(
             content: Text(
               LocalizedText.get('dpi_set_error_with_hint', [e.toString()])
+              //'${AppLocalizations.of(context).translate('toast_set_failed')} $e. ${AppLocalizations.of(context).translate('toast_ensure_shizuku')}',
             ),
           ),
         );
@@ -326,7 +366,7 @@ class _HomePageState extends State<HomePage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              LocalizedText.get('dpi_reset_success')
+              LocalizedText.get('toast_dpi_reset')
             ),
           ),
         );
@@ -338,6 +378,7 @@ class _HomePageState extends State<HomePage> {
           SnackBar(
             content: Text(
               LocalizedText.get('dpi_reset_error_with_hint', [e.toString()])
+              //'${AppLocalizations.of(context).translate('toast_reset_failed')} $e. ${AppLocalizations.of(context).translate('toast_ensure_shizuku')}',
             ),
           ),
         );
@@ -379,7 +420,7 @@ class _HomePageState extends State<HomePage> {
           _hasError = true;
           _shizukuStatus = ShizukuStatus.error;
           _customErrorTitle = ''; // Use default "Permission Required"
-          _errorDetail = LocalizedText.get('shizuku_not_authorized');
+          _errorDetail = LocalizedText.get('shizuku_permission_denied');
           // 获取详细信息帮助诊断
           _getDetailedStatus();
         }
@@ -393,17 +434,20 @@ class _HomePageState extends State<HomePage> {
 
       if (errorMsg.contains('binder') || errorMsg.contains('Binder')) {
         errorType = LocalizedText.get('error_shizuku_communication');
-        _errorDetail = LocalizedText.get('error_shizuku_crashed');
+        _errorDetail = LocalizedText.get('error_shizuku_service_crashed');
       } else if (errorMsg.contains('permission') || errorMsg.contains('Permission')) {
-        errorType = LocalizedText.get('error_insufficient_permissions');
-        _errorDetail = LocalizedText.get('error_authorize_mrss');
+        errorType = LocalizedText.get('error_permission_denied');
+        _errorDetail = LocalizedText.get('error_grant_in_shizuku');
       } else if (errorMsg.contains('RemoteException')) {
-        errorType = LocalizedText.get('error_service_call');
-        _errorDetail = LocalizedText.get('error_taskservice_no_response');
+        errorType = LocalizedText.get('error_service_call_failed');
+        _errorDetail = LocalizedText.get('error_task_service_no_response');
+      }  else if (errorMsg.contains('TimeoutException')) {
+        errorType = AppLocalizations.of(context,).translate('error_check_timeout');
+        _errorDetail = AppLocalizations.of(context,).translate('error_shizuku_timeout');
       } else {
         errorType = LocalizedText.get('error_unknown');
         _errorDetail = errorMsg.length > 50 
-            ? errorMsg.substring(0, 50) + '...'
+            ? '${errorMsg.substring(0, 50)}...'
             : errorMsg;
       }
       setState(() {
@@ -770,13 +814,13 @@ class _HomePageState extends State<HomePage> {
   String _getDisplayStatus(BuildContext context) {
     switch (_shizukuStatus) {
       case ShizukuStatus.checking:
-        return LocalizedText.get('checking_shizuku');
+        return LocalizedText.get('check_shizuku');
       case ShizukuStatus.running:
-        return LocalizedText.get('shizuku_ready');
+        return LocalizedText.get('status_ready');
       case ShizukuStatus.error:
         return _customErrorTitle.isNotEmpty
             ? _customErrorTitle
-            : LocalizedText.get('permission_required');
+            : LocalizedText.get('no_permission_dialog_title');
     }
   }
 
@@ -824,7 +868,9 @@ class _HomePageState extends State<HomePage> {
                     strokeWidth: 1.5,
                   ),
                   child: ClipPath(
-                    clipper: _SquircleClipper(cornerRadius: _SquircleRadii.large),
+                    clipper: _SquircleClipper(
+                      cornerRadius: _SquircleRadii.large,
+                    ),
                     child: BackdropFilter(
                       filter: ImageFilter.blur(sigmaX: 0, sigmaY: 0),
                       child: Container(
@@ -896,7 +942,7 @@ class _HomePageState extends State<HomePage> {
                                 Row(
                                   children: [
                                     Text(
-                                      LocalizedText.get('dpi_setting'),
+                                      LocalizedText.get('dpi_settings'),
                                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                         color: Colors.black87,
                                         fontWeight: FontWeight.bold,
@@ -917,7 +963,7 @@ class _HomePageState extends State<HomePage> {
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  _dpiLoading ? LocalizedText.get('dpi_loading') : (LocalizedText.get('current_dpi', [_currentRearDpi]) + '  ' + LocalizedText.get('dpi_recommended')),
+                                  _dpiLoading ? LocalizedText.get('checking_dpi') : (LocalizedText.get('current_dpi', [_currentRearDpi]) + '  ' + LocalizedText.get('recommended_range')),
                                   style: const TextStyle(
                                     color: Colors.black54,
                                     fontSize: 14,
@@ -936,7 +982,7 @@ class _HomePageState extends State<HomePage> {
                                         decoration: InputDecoration(
                                           labelText: LocalizedText.get('new_dpi'),
                                           labelStyle: TextStyle(color: Colors.black54),
-                                          hintText: LocalizedText.get('enter_dpi'),
+                                          hintText: LocalizedText.get('input_number'),
                                           hintStyle: TextStyle(color: Colors.black38),
                                           border: OutlineInputBorder(
                                             borderRadius: BorderRadius.all(Radius.circular(_SquircleRadii.small)),
@@ -980,7 +1026,7 @@ class _HomePageState extends State<HomePage> {
                                               borderRadius: BorderRadius.circular(_SquircleRadii.small),
                                             ),
                                           ),
-                                          child: Text(LocalizedText.get('set_button')),
+                                          child: Text(LocalizedText.get('set_dpi')),
                                         ),
                                       ),
                                     ),
@@ -1116,7 +1162,7 @@ class _HomePageState extends State<HomePage> {
                             Row(
                               children: [
                                 Text(
-                                  LocalizedText.get('screen_always_on'),
+                                  LocalizedText.get('rear_screen_always_on_title'),
                                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
                                 ),
                                 const Spacer(),
@@ -1133,7 +1179,7 @@ class _HomePageState extends State<HomePage> {
                             Row(
                               children: [
                                 Text(
-                                  LocalizedText.get('always_on_no_app'),
+                                  LocalizedText.get('always_wake_up_title'),
                                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
                                 ),
                                 const Spacer(),
@@ -1149,14 +1195,19 @@ class _HomePageState extends State<HomePage> {
                                 padding: EdgeInsets.all(12),
                                 decoration: BoxDecoration(
                                   color: Colors.orange.withOpacity(0.2),
-                                  borderRadius: BorderRadius.circular(_SquircleRadii.small),
-                                  border: Border.all(color: Colors.orange.withOpacity(0.4), width: 1),
+                                  borderRadius: BorderRadius.circular(
+                                    _SquircleRadii.small,
+                                  ),
+                                  border: Border.all(
+                                    color: Colors.orange.withOpacity(0.4),
+                                    width: 1,
+                                  ),
                                 ),
                                 child: Row(
                                   children: [
                                     Expanded(
                                       child: Text(
-                                        LocalizedText.get('burnin_warning'),
+                                        LocalizedText.get('warning_burn_in'),
                                         style: TextStyle(fontSize: 12, color: Colors.black87),
                                       ),
                                     ),
@@ -1181,7 +1232,9 @@ class _HomePageState extends State<HomePage> {
                     strokeWidth: 1.5,
                   ),
                   child: ClipPath(
-                    clipper: _SquircleClipper(cornerRadius: _SquircleRadii.large),
+                    clipper: _SquircleClipper(
+                      cornerRadius: _SquircleRadii.large,
+                    ),
                     child: BackdropFilter(
                       filter: ImageFilter.blur(sigmaX: 0, sigmaY: 0),
                       child: Container(
@@ -1196,7 +1249,7 @@ class _HomePageState extends State<HomePage> {
                             Row(
                               children: [
                                 Text(
-                                  LocalizedText.get('charging_animation'),
+                                  LocalizedText.get('charging_animation_title'),
                                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
                                 ),
                                 const Spacer(),
@@ -1213,7 +1266,7 @@ class _HomePageState extends State<HomePage> {
                             Row(
                               children: [
                                 Text(
-                                  LocalizedText.get('charging_always_on'),
+                                  LocalizedText.get('charging_always_on_title'),
                                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
                                 ),
                                 const Spacer(),
@@ -1229,14 +1282,19 @@ class _HomePageState extends State<HomePage> {
                                 padding: EdgeInsets.all(12),
                                 decoration: BoxDecoration(
                                   color: Colors.orange.withOpacity(0.2),
-                                  borderRadius: BorderRadius.circular(_SquircleRadii.small),
-                                  border: Border.all(color: Colors.orange.withOpacity(0.4), width: 1),
+                                  borderRadius: BorderRadius.circular(
+                                    _SquircleRadii.small,
+                                  ),
+                                  border: Border.all(
+                                    color: Colors.orange.withOpacity(0.4),
+                                    width: 1,
+                                  ),
                                 ),
                                 child: Row(
                                   children: [
                                     Expanded(
                                       child: Text(
-                                        LocalizedText.get('burnin_warning'),
+                                        LocalizedText.get('warning_burn_in'),
                                         style: TextStyle(fontSize: 12, color: Colors.black87),
                                       ),
                                     ),
@@ -1261,7 +1319,9 @@ class _HomePageState extends State<HomePage> {
                     strokeWidth: 1.5,
                   ),
                   child: ClipPath(
-                    clipper: _SquircleClipper(cornerRadius: _SquircleRadii.large),
+                    clipper: _SquircleClipper(
+                      cornerRadius: _SquircleRadii.large,
+                    ),
                     child: BackdropFilter(
                       filter: ImageFilter.blur(sigmaX: 0, sigmaY: 0),
                       child: Container(
@@ -1276,7 +1336,7 @@ class _HomePageState extends State<HomePage> {
                             Row(
                               children: [
                                 Text(
-                                  LocalizedText.get('rear_screen_notifications'),
+                                  LocalizedText.get('notification_service_title'),
                                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
                                 ),
                                 const Spacer(),
@@ -1285,7 +1345,7 @@ class _HomePageState extends State<HomePage> {
                                   icon: const Icon(Icons.menu, size: 24),
                                   color: Colors.black87,
                                   onPressed: _openAppSelectionPage,
-                                  tooltip: LocalizedText.get('tooltip_select_apps'),
+                                  tooltip: LocalizedText.get('select_apps'),
                                   padding: EdgeInsets.zero,
                                   constraints: const BoxConstraints(),
                                 ),
@@ -1355,7 +1415,9 @@ class _HomePageState extends State<HomePage> {
                     strokeWidth: 1.5,
                   ),
                   child: ClipPath(
-                    clipper: _SquircleClipper(cornerRadius: _SquircleRadii.large),
+                    clipper: _SquircleClipper(
+                      cornerRadius: _SquircleRadii.large,
+                    ),
                     child: BackdropFilter(
                       filter: ImageFilter.blur(sigmaX: 0, sigmaY: 0),
                       child: Material(
@@ -1422,7 +1484,9 @@ class _HomePageState extends State<HomePage> {
                     strokeWidth: 1.5,
                   ),
                   child: ClipPath(
-                    clipper: _SquircleClipper(cornerRadius: _SquircleRadii.large),
+                    clipper: _SquircleClipper(
+                      cornerRadius: _SquircleRadii.large,
+                    ),
                     child: BackdropFilter(
                       filter: ImageFilter.blur(sigmaX: 0, sigmaY: 0),
                       child: Material(
@@ -1436,7 +1500,7 @@ class _HomePageState extends State<HomePage> {
                               print(LocalizedText.get('open_coolapk_failed', [e.toString()]));
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text(LocalizedText.get('install_coolapk_first'))),
+                                  SnackBar(content: Text(LocalizedText.get('install_coolapk'))),
                                 );
                               }
                             }
@@ -1466,7 +1530,7 @@ class _HomePageState extends State<HomePage> {
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
-                                  LocalizedText.get('author_coolapk'),
+                                  LocalizedText.get('author_anti'),
                                   style: TextStyle(
                                     color: Colors.black87,
                                     fontSize: 14,
@@ -1498,7 +1562,9 @@ class _HomePageState extends State<HomePage> {
                     strokeWidth: 1.5,
                   ),
                   child: ClipPath(
-                    clipper: _SquircleClipper(cornerRadius: _SquircleRadii.large),
+                    clipper: _SquircleClipper(
+                      cornerRadius: _SquircleRadii.large,
+                    ),
                     child: BackdropFilter(
                       filter: ImageFilter.blur(sigmaX: 0, sigmaY: 0),
                       child: Material(
@@ -1512,7 +1578,7 @@ class _HomePageState extends State<HomePage> {
                               print(LocalizedText.get('open_coolapk_failed', [e.toString()]));
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text(LocalizedText.get('install_coolapk_first'))),
+                                  SnackBar(content: Text(LocalizedText.get('install_coolapk'))),
                                 );
                               }
                             }
@@ -1578,7 +1644,9 @@ class _HomePageState extends State<HomePage> {
                           strokeWidth: 1.5,
                         ),
                         child: ClipPath(
-                          clipper: _SquircleClipper(cornerRadius: _SquircleRadii.large),
+                          clipper: _SquircleClipper(
+                            cornerRadius: _SquircleRadii.large,
+                          ),
                           child: BackdropFilter(
                             filter: ImageFilter.blur(sigmaX: 0, sigmaY: 0),
                             child: Material(
@@ -1611,13 +1679,10 @@ class _HomePageState extends State<HomePage> {
                                   child: Column(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Text(
-                                        '☕',
-                                        style: TextStyle(fontSize: 24),
-                                      ),
+                                      Text('☕', style: TextStyle(fontSize: 24)),
                                       SizedBox(height: 4),
                                       Text(
-                                        LocalizedText.get('donate_label'),
+                                        LocalizedText.get('buy_coffee'),
                                         style: TextStyle(
                                           color: Colors.black87,
                                           fontSize: 12,
@@ -1646,7 +1711,9 @@ class _HomePageState extends State<HomePage> {
                           strokeWidth: 1.5,
                         ),
                         child: ClipPath(
-                          clipper: _SquircleClipper(cornerRadius: _SquircleRadii.large),
+                          clipper: _SquircleClipper(
+                            cornerRadius: _SquircleRadii.large,
+                          ),
                           child: BackdropFilter(
                             filter: ImageFilter.blur(sigmaX: 0, sigmaY: 0),
                             child: Material(
@@ -1681,7 +1748,7 @@ class _HomePageState extends State<HomePage> {
                                       ),
                                       SizedBox(height: 4),
                                       Text(
-                                        LocalizedText.get('chat_group'),
+                                        LocalizedText.get('qq_group_title'),
                                         style: TextStyle(
                                           color: Colors.black87,
                                           fontSize: 12,
@@ -1716,8 +1783,8 @@ class _HomePageState extends State<HomePage> {
     return SizedBox(
       width: 50,
       height: 32,
-       child: ClipPath(
-         clipper: _SquircleClipper(cornerRadius: _SquircleRadii.small),
+      child: ClipPath(
+        clipper: _SquircleClipper(cornerRadius: _SquircleRadii.small),
         child: Container(
           decoration: BoxDecoration(
             gradient: isSelected ? kMainGradient : null,
@@ -1726,14 +1793,18 @@ class _HomePageState extends State<HomePage> {
           child: Material(
             color: kTransparent,
             child: InkWell(
-              onTap: (_isLoading || _dpiLoading) ? null : () => _setRotation(rotation),
+              onTap: (_isLoading || _dpiLoading)
+                  ? null
+                  : () => _setRotation(rotation),
               child: Center(
                 child: Text(
-                  label, 
+                  label,
                   style: TextStyle(
                     fontSize: 12,
                     color: isSelected ? Colors.white : Colors.black54,
-                    fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
+                    fontWeight: isSelected
+                        ? FontWeight.w500
+                        : FontWeight.normal,
                   ),
                 ),
               ),
@@ -1747,7 +1818,9 @@ class _HomePageState extends State<HomePage> {
   // V2.1: 获取当前旋转方向
   Future<void> _getCurrentRotation() async {
     try {
-      final rotation = await platform.invokeMethod('getDisplayRotation', {'displayId': 1});
+      final rotation = await platform.invokeMethod('getDisplayRotation', {
+        'displayId': 1,
+      });
       if (rotation != null && rotation >= 0) {
         setState(() {
           _currentRotation = rotation;
@@ -1794,14 +1867,14 @@ class _HomePageState extends State<HomePage> {
         print(LocalizedText.get('flutter_rotation_success', [rotation * 90]));
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(LocalizedText.get('rotation_set', [rotation * 90])), duration: const Duration(seconds: 1)),
+            SnackBar(content: Text(LocalizedText.get('toast_rotation_set', [rotation * 90])), duration: const Duration(seconds: 1)),
           );
         }
       } else {
         print(LocalizedText.get('flutter_rotation_fail_result', [result.toString()]));
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(LocalizedText.get('rotation_failed'))),
+            SnackBar(content: Text(LocalizedText.get('toast_rotation_failed'))),
           );
         }
       }
@@ -1809,7 +1882,7 @@ class _HomePageState extends State<HomePage> {
       print(LocalizedText.get('flutter_rotation_exception', [e.toString()]));
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(LocalizedText.get('rotation_error', [e.toString()]))),
+          SnackBar(content: Text(LocalizedText.get('toast_error', [e.toString()]))),
         );
       }
     } finally {
@@ -1864,11 +1937,16 @@ class _GradientToggleState extends State<_GradientToggle> {
                 ),
                 // Knob
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 4,
+                  ),
                   child: AnimatedAlign(
                     duration: Duration(milliseconds: 220),
                     curve: Curves.easeOut,
-                    alignment: widget.value ? Alignment.centerRight : Alignment.centerLeft,
+                    alignment: widget.value
+                        ? Alignment.centerRight
+                        : Alignment.centerLeft,
                     child: AnimatedScale(
                       duration: Duration(milliseconds: 120),
                       scale: _pressed ? 0.95 : 1.0,
@@ -1965,7 +2043,10 @@ class _AppListItem extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               // 渐变复选框
-              _GradientCheckbox(value: isSelected, onChanged: (_) => onToggle()),
+              _GradientCheckbox(
+                value: isSelected,
+                onChanged: (_) => onToggle(),
+              ),
             ],
           ),
         ),
@@ -2006,9 +2087,7 @@ class _GradientCheckboxState extends State<_GradientCheckbox> {
             child: Stack(
               children: [
                 // 底层半透明背景
-                Container(
-                  color: Colors.white.withOpacity(0.25),
-                ),
+                Container(color: Colors.white.withOpacity(0.25)),
                 // 渐变层（淡入淡出）
                 AnimatedOpacity(
                   duration: const Duration(milliseconds: 200),
@@ -2037,7 +2116,11 @@ class _GradientCheckboxState extends State<_GradientCheckbox> {
                     duration: const Duration(milliseconds: 200),
                     curve: Curves.easeOutBack,
                     scale: widget.value ? 1.0 : 0.0,
-                    child: const Icon(Icons.check, size: 18, color: Colors.white),
+                    child: const Icon(
+                      Icons.check,
+                      size: 18,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ],
@@ -2098,8 +2181,16 @@ class _SquircleShapeBorder extends ShapeBorder {
     path.moveTo(0, effectiveRadius);
     for (double t = 0; t <= 1.0; t += 0.02) {
       final angle = (1 - t) * math.pi / 2;
-      final x = effectiveRadius * (1 - math.pow(math.cos(angle).abs(), 2 / n) * (math.cos(angle) >= 0 ? 1 : -1));
-      final y = effectiveRadius * (1 - math.pow(math.sin(angle).abs(), 2 / n) * (math.sin(angle) >= 0 ? 1 : -1));
+      final x =
+          effectiveRadius *
+          (1 -
+              math.pow(math.cos(angle).abs(), 2 / n) *
+                  (math.cos(angle) >= 0 ? 1 : -1));
+      final y =
+          effectiveRadius *
+          (1 -
+              math.pow(math.sin(angle).abs(), 2 / n) *
+                  (math.sin(angle) >= 0 ? 1 : -1));
       path.lineTo(x, y);
     }
 
@@ -2109,8 +2200,17 @@ class _SquircleShapeBorder extends ShapeBorder {
     // 顶部右侧圆角
     for (double t = 0; t <= 1.0; t += 0.02) {
       final angle = t * math.pi / 2;
-      final x = width - effectiveRadius * (1 - math.pow(math.cos(angle).abs(), 2 / n) * (math.cos(angle) >= 0 ? 1 : -1));
-      final y = effectiveRadius * (1 - math.pow(math.sin(angle).abs(), 2 / n) * (math.sin(angle) >= 0 ? 1 : -1));
+      final x =
+          width -
+          effectiveRadius *
+              (1 -
+                  math.pow(math.cos(angle).abs(), 2 / n) *
+                      (math.cos(angle) >= 0 ? 1 : -1));
+      final y =
+          effectiveRadius *
+          (1 -
+              math.pow(math.sin(angle).abs(), 2 / n) *
+                  (math.sin(angle) >= 0 ? 1 : -1));
       path.lineTo(x, y);
     }
 
@@ -2120,8 +2220,18 @@ class _SquircleShapeBorder extends ShapeBorder {
     // 底部右侧圆角
     for (double t = 0; t <= 1.0; t += 0.02) {
       final angle = (1 - t) * math.pi / 2 + math.pi / 2;
-      final x = width - effectiveRadius * (1 - math.pow(math.cos(angle).abs(), 2 / n) * (math.cos(angle) >= 0 ? 1 : -1));
-      final y = height - effectiveRadius * (1 - math.pow(math.sin(angle).abs(), 2 / n) * (math.sin(angle) >= 0 ? 1 : -1));
+      final x =
+          width -
+          effectiveRadius *
+              (1 -
+                  math.pow(math.cos(angle).abs(), 2 / n) *
+                      (math.cos(angle) >= 0 ? 1 : -1));
+      final y =
+          height -
+          effectiveRadius *
+              (1 -
+                  math.pow(math.sin(angle).abs(), 2 / n) *
+                      (math.sin(angle) >= 0 ? 1 : -1));
       path.lineTo(x, y);
     }
 
@@ -2131,8 +2241,17 @@ class _SquircleShapeBorder extends ShapeBorder {
     // 底部左侧圆角
     for (double t = 0; t <= 1.0; t += 0.02) {
       final angle = t * math.pi / 2 + math.pi;
-      final x = effectiveRadius * (1 - math.pow(math.cos(angle).abs(), 2 / n) * (math.cos(angle) >= 0 ? 1 : -1));
-      final y = height - effectiveRadius * (1 - math.pow(math.sin(angle).abs(), 2 / n) * (math.sin(angle) >= 0 ? 1 : -1));
+      final x =
+          effectiveRadius *
+          (1 -
+              math.pow(math.cos(angle).abs(), 2 / n) *
+                  (math.cos(angle) >= 0 ? 1 : -1));
+      final y =
+          height -
+          effectiveRadius *
+              (1 -
+                  math.pow(math.sin(angle).abs(), 2 / n) *
+                      (math.sin(angle) >= 0 ? 1 : -1));
       path.lineTo(x, y);
     }
 
@@ -2210,7 +2329,8 @@ class _SquircleClipper extends CustomClipper<Path> {
   double _sgn(double x) => x < 0 ? -1.0 : 1.0;
 
   @override
-  bool shouldReclip(_SquircleClipper oldClipper) => oldClipper.cornerRadius != cornerRadius;
+  bool shouldReclip(_SquircleClipper oldClipper) =>
+      oldClipper.cornerRadius != cornerRadius;
 }
 
 /// 精确的超椭圆边框绘制器
@@ -2345,7 +2465,7 @@ class _AppSelectionPageState extends State<AppSelectionPage> {
             await _loadAppsInternal();
 
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(LocalizedText.get('permission_granted_apps_refreshed'))),
+              SnackBar(content: Text(LocalizedText.get('permission_granted_refresh'))),
             );
           }
           return; // 成功，退出循环
@@ -2363,7 +2483,7 @@ class _AppSelectionPageState extends State<AppSelectionPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            LocalizedText.get('please_grant_permission_then_refresh'),
+            LocalizedText.get('grant_permission_manual'),
           ),
         ),
       );
@@ -2503,8 +2623,8 @@ class _AppSelectionPageState extends State<AppSelectionPage> {
           final shouldOpenSettings = await showDialog<bool>(
             context: context,
             builder: (context) => AlertDialog(
-              title: Text(LocalizedText.get('permission_required')),
-              content: Text(LocalizedText.get('permission_needed_message')),
+              title: Text(LocalizedText.get('no_permission_dialog_title')),
+              content: Text(LocalizedText.get('no_permission_dialog_content')),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context, false),
@@ -2576,10 +2696,12 @@ class _AppSelectionPageState extends State<AppSelectionPage> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const NotificationSettingsPage()),
+                MaterialPageRoute(
+                  builder: (context) => const NotificationSettingsPage(),
+                ),
               );
             },
-            tooltip: LocalizedText.get('notification_settings'),
+            tooltip: LocalizedText.get('notification_settings_title'),
           ),
         ],
       ),
@@ -2696,6 +2818,7 @@ class _AppSelectionPageState extends State<AppSelectionPage> {
                     ),
                   ),
                 ),
+
                 const SizedBox(height: 20),
                 // 应用列表
                 Expanded(
@@ -2770,11 +2893,15 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
     try {
       final prefs = await SharedPreferences.getInstance();
       setState(() {
-        _privacyHideTitle = prefs.getBool('notification_privacy_hide_title') ?? false;
-        _privacyHideContent = prefs.getBool('notification_privacy_hide_content') ?? false;
+        _privacyHideTitle =
+            prefs.getBool('notification_privacy_hide_title') ?? false;
+        _privacyHideContent =
+            prefs.getBool('notification_privacy_hide_content') ?? false;
         _followDndMode = prefs.getBool('notification_follow_dnd_mode') ?? true;
-        _onlyWhenLocked = prefs.getBool('notification_only_when_locked') ?? false;
-        _notificationDarkMode = prefs.getBool('notification_dark_mode') ?? false;
+        _onlyWhenLocked =
+            prefs.getBool('notification_only_when_locked') ?? false;
+        _notificationDarkMode =
+            prefs.getBool('notification_dark_mode') ?? false;
         _notificationDuration = prefs.getInt('notification_duration') ?? 10;
         _durationController.text = _notificationDuration.toString();
       });
@@ -2866,7 +2993,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(LocalizedText.get('seconds_set', [seconds]))),
+          SnackBar(content: Text(LocalizedText.get('toast_duration_set', [seconds]))),
         );
       }
     } catch (e) {
@@ -2878,7 +3005,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(LocalizedText.get('notification_settings')),
+        title: Text(LocalizedText.get('notification_settings_title')),
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -2917,10 +3044,14 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                         children: [
                           Row(
                             children: [
-                              const Icon(Icons.lock_outline, size: 20, color: Colors.black54),
+                              const Icon(
+                                Icons.lock_outline,
+                                size: 20,
+                                color: Colors.black54,
+                              ),
                               const SizedBox(width: 8),
                               Text(
-                                       LocalizedText.get('hide_notification_title'),
+                                LocalizedText.get('hide_notification_title'),
                                 style: TextStyle(fontSize: 14, color: Colors.black87, fontWeight: FontWeight.w500),
                               ),
                               const Spacer(),
@@ -2935,7 +3066,11 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                           const SizedBox(height: 12),
                           Row(
                             children: [
-                              const Icon(Icons.lock_outline, size: 20, color: Colors.black54),
+                              const Icon(
+                                Icons.lock_outline,
+                                size: 20,
+                                color: Colors.black54,
+                              ),
                               const SizedBox(width: 8),
                               Text(
                                 LocalizedText.get('hide_notification_content'),
@@ -2975,10 +3110,14 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.notifications_paused, size: 20, color: Colors.black54),
+                          const Icon(
+                            Icons.notifications_paused,
+                            size: 20,
+                            color: Colors.black54,
+                          ),
                           const SizedBox(width: 8),
                           Text(
-                            LocalizedText.get('follow_system_dnd_label'),
+                            LocalizedText.get('follow_system_dnd'),
                             style: TextStyle(fontSize: 14, color: Colors.black87, fontWeight: FontWeight.w500),
                           ),
                           const Spacer(),
@@ -3013,7 +3152,11 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.screen_lock_portrait, size: 20, color: Colors.black54),
+                          const Icon(
+                            Icons.flip_camera_android,
+                            size: 20,
+                            color: Colors.black54,
+                          ),
                           const SizedBox(width: 8),
                           Text(
                             LocalizedText.get('only_when_locked_label'),
@@ -3051,10 +3194,14 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.dark_mode, size: 20, color: Colors.black54),
+                          const Icon(
+                            Icons.dark_mode,
+                            size: 20,
+                            color: Colors.black54,
+                          ),
                           const SizedBox(width: 8),
                           Text(
-                            LocalizedText.get('notification_dark_mode_label'),
+                            LocalizedText.get('notification_dark_mode'),
                             style: TextStyle(fontSize: 14, color: Colors.black87, fontWeight: FontWeight.w500),
                           ),
                           const Spacer(),
@@ -3092,10 +3239,14 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                         children: [
                           Row(
                             children: [
-                              const Icon(Icons.timer_outlined, size: 20, color: Colors.black54),
+                              const Icon(
+                                Icons.timer_outlined,
+                                size: 20,
+                                color: Colors.black54,
+                              ),
                               const SizedBox(width: 8),
                               Text(
-                                LocalizedText.get('auto_dismiss_time'),
+                                LocalizedText.get('auto_destroy_time'),
                                 style: TextStyle(fontSize: 14, color: Colors.black87, fontWeight: FontWeight.w500),
                               ),
                             ],
@@ -3110,40 +3261,57 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                                   keyboardType: TextInputType.number,
                                   style: TextStyle(color: Colors.black87),
                                   decoration: InputDecoration(
-                                    labelText: LocalizedText.get('new_time_seconds_label'),
+                                    labelText: LocalizedText.get('new_time_seconds'),
                                     labelStyle: TextStyle(color: Colors.black54),
-                                    hintText: LocalizedText.get('input_seconds_hint'),
+                                    hintText: LocalizedText.get('input_seconds'),
                                     hintStyle: TextStyle(color: Colors.black38),
                                     border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.all(Radius.circular(_SquircleRadii.small)),
-                                      borderSide: BorderSide(color: Colors.black26),
+                                      borderRadius: BorderRadius.all(
+                                        Radius.circular(_SquircleRadii.small),
+                                      ),
+                                      borderSide: BorderSide(
+                                        color: Colors.black26,
+                                      ),
                                     ),
                                     enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.all(Radius.circular(_SquircleRadii.small)),
-                                      borderSide: BorderSide(color: Colors.black26),
+                                      borderRadius: BorderRadius.all(
+                                        Radius.circular(_SquircleRadii.small),
+                                      ),
+                                      borderSide: BorderSide(
+                                        color: Colors.black26,
+                                      ),
                                     ),
                                     focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.all(Radius.circular(_SquircleRadii.small)),
-                                      borderSide: BorderSide(color: Colors.black54, width: 2),
+                                      borderRadius: BorderRadius.all(
+                                        Radius.circular(_SquircleRadii.small),
+                                      ),
+                                      borderSide: BorderSide(
+                                        color: Colors.black54,
+                                        width: 2,
+                                      ),
                                     ),
                                   ),
                                 ),
                               ),
                               const SizedBox(width: 12),
                               ClipPath(
-                                clipper: _SquircleClipper(cornerRadius: _SquircleRadii.small),
+                                clipper: _SquircleClipper(
+                                  cornerRadius: _SquircleRadii.small,
+                                ),
                                 child: Container(
                                   decoration: BoxDecoration(
                                     gradient: kMainGradient,
                                   ),
                                   child: ElevatedButton(
                                     onPressed: () {
-                                      final seconds = int.tryParse(_durationController.text);
+                                      final seconds = int.tryParse(
+                                        _durationController.text,
+                                      );
                                       if (seconds != null && seconds > 0) {
                                         _setNotificationDuration(seconds);
                                       } else {
                                         ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(content: Text(LocalizedText.get('please_enter_positive_seconds'))),
+                                          SnackBar(content: Text(LocalizedText.get('input_valid_number'))),
                                         );
                                       }
                                     },
@@ -3151,7 +3319,15 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                                       backgroundColor: Colors.transparent,
                                       foregroundColor: Colors.white,
                                       shadowColor: Colors.transparent,
-                                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 20,
+                                        vertical: 12,
+                                      ),
+                                    ),
+                                    child: Text(
+                                      AppLocalizations.of(
+                                        context,
+                                      ).translate('confirm'),
                                     ),
                                     child: Text(LocalizedText.get('set')),
                                   ),

@@ -32,28 +32,28 @@ import rikka.shizuku.Shizuku;
  */
 public class RearScreenshotTileService extends TileService {
     private static final String TAG = "RearScreenshotTile";
-    
+
     private ITaskService taskService;
-    private final Shizuku.UserServiceArgs serviceArgs = 
-        new Shizuku.UserServiceArgs(new ComponentName("com.tgwgroup.MiRearScreenSwitcher", TaskService.class.getName()))
+    private final Shizuku.UserServiceArgs serviceArgs = new Shizuku.UserServiceArgs(
+            new ComponentName("com.tgwgroup.MiRearScreenSwitcher", TaskService.class.getName()))
             .daemon(false)
             .processNameSuffix("task_service")
             .debuggable(false)
             .version(1);
-    
+
     private final ServiceConnection taskServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder binder) {
             taskService = ITaskService.Stub.asInterface(binder);
         }
-        
+
         @Override
         public void onServiceDisconnected(ComponentName name) {
             taskService = null;
             scheduleReconnectTaskService();
         }
     };
-    
+
     /**
      * TaskService重连任务
      */
@@ -67,18 +67,18 @@ public class RearScreenshotTileService extends TileService {
             }
         }
     };
-    
+
     /**
      * 安排TaskService重连
      */
     private void scheduleReconnectTaskService() {
         new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(reconnectTaskServiceRunnable, 200);
     }
-    
+
     @Override
     public void onStartListening() {
         super.onStartListening();
-        
+
         Tile tile = getQsTile();
         if (tile != null) {
             tile.setState(Tile.STATE_INACTIVE);
@@ -88,19 +88,19 @@ public class RearScreenshotTileService extends TileService {
             }
             tile.updateTile();
         }
-        
+
         bindTaskService();
     }
-    
+
     @Override
     public void onStopListening() {
         super.onStopListening();
     }
-    
+
     @Override
     public void onClick() {
         super.onClick();
-        
+
         unlockAndRun(() -> {
             new Thread(() -> {
                 try {
@@ -112,9 +112,9 @@ public class RearScreenshotTileService extends TileService {
                         });
                         return;
                     }
-                    
+
                     boolean success = taskService.takeRearScreenshot();
-                    
+
                     // 无论成功失败都显示成功Toast
                     showTemporaryFeedback(getString(R.string.screenshot_saved));
                     
@@ -122,13 +122,14 @@ public class RearScreenshotTileService extends TileService {
                     try {
                         taskService.collapseStatusBar();
                         Thread.sleep(300);
-                    } catch (Exception ignored) {}
-                    
+                    } catch (Exception ignored) {
+                    }
+
                     // 显示Toast提示
                     new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
                         Toast.makeText(this, getString(R.string.uri_rear_screen_screenshot_saved), Toast.LENGTH_SHORT).show();
                     });
-                    
+
                 } catch (Exception e) {
                     Log.e(TAG, "Screenshot error", e);
                     // 即使异常也显示成功Toast
@@ -140,24 +141,24 @@ public class RearScreenshotTileService extends TileService {
             }).start();
         });
     }
-    
+
     private void bindTaskService() {
         if (taskService != null) {
             return;
         }
-        
+
         try {
             if (!Shizuku.pingBinder()) {
                 Log.w(TAG, "Shizuku not available");
                 return;
             }
-            
+
             Shizuku.bindUserService(serviceArgs, taskServiceConnection);
         } catch (Exception e) {
             Log.e(TAG, "Failed to bind TaskService", e);
         }
     }
-    
+
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -170,13 +171,13 @@ public class RearScreenshotTileService extends TileService {
             Log.e(TAG, "Error unbinding service", e);
         }
     }
-    
+
     private void showTemporaryFeedback(String message) {
         Tile tile = getQsTile();
         if (tile != null) {
             tile.setSubtitle(message);
             tile.updateTile();
-            
+
             // 1秒后清除反馈
             new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
                 Tile t = getQsTile();

@@ -67,7 +67,7 @@ public class NotificationService extends NotificationListenerService {
     private boolean privacyHideTitle = false; // V3.2: 隐私模式 - 隐藏标题
     private boolean privacyHideContent = false; // V3.2: 隐私模式 - 隐藏内容
     private boolean followDndMode = true; // 跟随系统勿扰模式（默认开启）
-    private boolean onlyWhenLocked = false; // 仅在锁屏时通知（默认关闭）
+    private boolean onlyWhenLocked = false; // 仅倒扣手机时通知（默认关闭）
     private boolean notificationDarkMode = false; // 通知暗夜模式（默认关闭）
     private boolean serviceEnabled = false; // 服务是否启用
 
@@ -75,7 +75,6 @@ public class NotificationService extends NotificationListenerService {
     private ITaskService taskService; // 自己的TaskService实例
     private SharedPreferences prefs;
     private PowerManager.WakeLock wakeLock;
-
     // 静态实例，供外部访问
     private static NotificationService instance;
 
@@ -471,14 +470,9 @@ public class NotificationService extends NotificationListenerService {
 
             // 检查是否仅在锁屏时通知
             if (onlyWhenLocked) {
-                try {
-                    android.app.KeyguardManager km = (android.app.KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
-                    if (km != null && !km.isKeyguardLocked()) {
-                        Log.d(TAG, "⏭️ 当前未锁屏，仅锁屏通知模式已开启，跳过");
-                        return;
-                    }
-                } catch (Exception e) {
-                    Log.w(TAG, "检查锁屏状态失败: " + e.getMessage());
+                if (!isMainScreenCovered) {
+                    Log.d(TAG, "⏭️ 主屏未被遮盖，仅倒扣手机通知模式已开启，跳过");
+                    return;
                 }
             }
 
@@ -503,11 +497,11 @@ public class NotificationService extends NotificationListenerService {
 
             // V3.2: 隐私模式处理（区分标题和内容）
             if (privacyHideTitle) {
-                Log.d(TAG, "� 隐藏通知标题");
+                Log.d(TAG, "🔒 隐藏通知标题");
                 title = getString(R.string.privacy_mode_enabled);
             }
             if (privacyHideContent) {
-                Log.d(TAG, "� 隐藏通知内容");
+                Log.d(TAG, "🔒 隐藏通知内容");
                 text = getString(R.string.new_message_placeholder);
             }
 
